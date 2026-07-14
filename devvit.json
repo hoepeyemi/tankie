@@ -1,0 +1,66 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "tooonks3d",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "inline": true,
+        "entry": "splash.html"
+      },
+      "game": {
+        "entry": "game.html"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Create Blast Tanks Game",
+        "description": "Create a new Blast Tanks multiplayer post",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/create-post"
+      }
+    ]
+  },
+  "payments": {
+    "endpoints": {
+      "fulfillOrder": "/internal/payments/fulfill"
+    },
+    "products": [
+      {
+        "sku": "skin_heig",
+        "displayName": "HEIG Tank Skin",
+        "description": "Premium HEIG tank skin for Blast Tanks",
+        "price": 25,
+        "accountingType": "INSTANT"
+      },
+      {
+        "sku": "skin_neon",
+        "displayName": "Neon Tank Skin",
+        "description": "Premium Neon tank skin for Blast Tanks",
+        "price": 50,
+        "accountingType": "INSTANT"
+      },
+      {
+        "sku": "skin_geometric",
+        "displayName": "Geometric Tank Skin",
+        "description": "Premium Geometric tank skin for Blast Tanks",
+        "price": 100,
+        "accountingType": "INSTANT"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "dev": {
+    "subreddit": "tankie3d_dev"
+  }
+}

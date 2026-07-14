@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0"
+    />
+    <title>Blast Tanks</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: #1a1a2e;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
+        user-select: none;
+      }
+      img.logo { width: 80px; height: 80px; border-radius: 12px; }
+      h1 { font-size: 1.6rem; color: #ff6b35; letter-spacing: 2px; }
+      p { font-size: 0.85rem; color: #888; }
+      button {
+        margin-top: 8px;
+        padding: 14px 40px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        background: #ff6b35;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.2s;
+      }
+      button:active { transform: scale(0.96); background: #e55a25; }
+    </style>
+  </head>
+  <body>
+    <img class="logo" src="/Blasttankslogo.png" alt="Blast Tanks" />
+    <h1>BLAST TANKS</h1>
+    <p>3D Multiplayer Tank Battle</p>
+    <button id="play-btn">▶ PLAY NOW</button>
+    <script type="module" src="splash.ts" defer></script>
+  </body>
+</html>

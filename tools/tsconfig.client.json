@@ -1,0 +1,29 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist/types/client",
+    "tsBuildInfoFile": "../dist/types/client/tsconfig.tsbuildinfo",
+    "customConditions": ["browser"],
+    "jsx": "react-jsx",
+    "rootDir": "../src",
+    "paths": {
+      "@/*": ["../src/*"]
+    }
+  },
+  "include": [
+    "../src/client/**/*",
+    "../src/main.tsx",
+    "../src/vite-env.d.ts",
+    "../src/routes/**/*",
+    "../src/ui/**/*",
+    "../src/store/**/*",
+    "../src/lib/**/*",
+    "../src/contexts/**/*"
+  ],
+  "exclude": ["../src/server/**/*"],
+  "references": [
+    {
+      "path": "./tsconfig.shared.json"
+    }
+  ]
+}
