@@ -1,6 +1,7 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "tooonks3d",
+  "icon": "Blasttankslogo.png",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
