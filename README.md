@@ -194,6 +194,34 @@ Test user: `u/Coxydoalpha`
 
 ---
 
+## Changelog
+
+### v0.0.45 — 2026-07-15
+- Renamed app display to **Blast Tanks** throughout all UI, titles, and server-generated text
+- Fixed lobby screen: added back button that cancels any active XP wager and disconnects cleanly
+- Fixed lobby screen: peer cards now show the rendered tank avatar image instead of the raw texture map
+- Fixed clipboard copy: now copies just the room code (not a broken Reddit iframe URL)
+- Fixed Quick Play: navigates directly to the game after `quickPlay()` resolves (eliminated second-click friction)
+- Fixed wager leaderboard desync: create/join/cancel/settle all now sync `lb:xp` sorted set alongside player hash
+- Fixed wager settle failure: added cancel fallback in `GameOver.tsx` so XP is never permanently locked
+- Fixed leaderboard mobile overflow: wrapped table in `overflow-x: auto` scroll container
+- Fixed `submitCustomPost` missing `subredditName`: now passes `context.subredditName` explicitly
+- Removed unused `context` import from `splash.ts`
+- Updated README with How to Play, architecture overview, project structure, and Devvit API reference
+- Made `r/tankie3d_dev` subreddit public for hackathon judging
+
+### v0.0.44
+- Added XP wager system: server-side escrow with create/join/cancel/settle endpoints
+- Added daily challenge system: 7 deterministic variants seeded by UTC date
+- Added day streak tracking with Redis TTL keys
+- Added 8-tier rank progression with Reddit flair + comment announcements on rank-up
+- Added mobile dual-stick virtual gamepad
+- Added animated Three.js splash screen with last-match comeback hook
+- Added AI bot opponents (TankBot) with pathfinding, anti-stuck, and auto-right logic
+- Added Reddit Gold payments integration for premium tank skins
+
+---
+
 ## Key Devvit APIs Used
 
 | API | Usage |
