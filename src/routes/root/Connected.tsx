@@ -45,7 +45,7 @@ export default function Connected() {
 								{peer.metadata.name}
 							</h2>
 							<img
-								src={tankInfo.url}
+								src={tankInfo.avatar}
 								alt={tankInfo.name}
 								className='w-full object-contain'
 								style={{ maxHeight: 80 }}

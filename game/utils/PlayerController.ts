@@ -6,7 +6,7 @@ import type Game from '@game/scenes/Game';
 import type TankPlayer from '@game/models/TankPlayer';
 
 export default class PlayerController {
-	private readonly keyboard = new Keyboard(false)
+	private readonly keyboard = new Keyboard(true)
 		.addAction('turnRight', ['KeyD'])
 		.addAction('turnLeft', ['KeyA'])
 		.addAction('moveForward', ['KeyW'])
@@ -80,15 +80,11 @@ export default class PlayerController {
 			targetRadius: 6,
 			autoUpdate: false,
 		});
-		this.control.onPointerLockChange(isLocked => {
-			this.keyboard.setEnabled(isLocked);
-		});
-
 		if (this.tank) {
 			this.control.setTarget(this.tank.object3d);
 		}
 
-		this.keyboard.start();
+		this.keyboard.start(this.game.renderer.domElement);
 		this.keyboard.on('wheel', (event: WheelEvent) => {
 			if (this.tank) {
 				this.tank.canonAngle += 0.005 * Math.sign(event.deltaY);

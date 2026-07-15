@@ -24,24 +24,28 @@ export class Keyboard<T extends KeyMap> extends Emittery {
 		}
 	}
 
-	public start() {
-		Keyboard.events.forEach(event => {
-			document.addEventListener(event, e => {
-				if (!this.enabled) {
-					return;
-				}
-
-				if (!e.repeat && this.keys.has(e.code)) {
-					e.preventDefault();
-					const key = this.keys.get(e.code);
-					if (key) {
-						key.event = event;
-						if (event === 'keydown') {
-							key.actions.forEach(async action => this.emit(action));
-						}
+	public start(element?: HTMLElement) {
+		const handleKey = (event: string) => (e: KeyboardEvent) => {
+			if (!this.enabled) return;
+			if (!e.repeat && this.keys.has(e.code)) {
+				e.preventDefault();
+				const key = this.keys.get(e.code);
+				if (key) {
+					key.event = event as Events;
+					if (event === 'keydown') {
+						key.actions.forEach(async action => this.emit(action));
 					}
 				}
-			});
+			}
+		};
+
+		Keyboard.events.forEach(event => {
+			// Listen on both document and window to catch events regardless of focus target
+			document.addEventListener(event, handleKey(event));
+			window.addEventListener(event, handleKey(event));
+			if (element) {
+				element.addEventListener(event, handleKey(event));
+			}
 		});
 
 		// Wheel event
@@ -51,6 +55,18 @@ export class Keyboard<T extends KeyMap> extends Emittery {
 				void this.emit('wheel', e);
 			}
 		}, {passive: false});
+
+		// Ensure the iframe/element has keyboard focus — required in sandboxed iframes
+		const focusTarget = element ?? document.body;
+		if (!focusTarget.hasAttribute('tabindex')) {
+			focusTarget.setAttribute('tabindex', '-1');
+		}
+		focusTarget.focus({ preventScroll: true });
+
+		// Re-focus whenever the user clicks on the page (in case focus drifts to parent frame)
+		document.addEventListener('pointerdown', () => {
+			focusTarget.focus({ preventScroll: true });
+		});
 	}
 
 	addAction<A extends string>(action: A, keys: string[]): Keyboard<T & KeyMap<A>> {
