@@ -34,7 +34,7 @@ export default function Logo(props: { style?: any }) {
 					rotateY,
 				}}
 				className='drop-shadow-lg'
-				alt='Tankies logo'
+				alt='Blast Tanks logo'
 			/>
 		</div>
 	);

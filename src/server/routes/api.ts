@@ -100,7 +100,7 @@ api.post('/score', async (c) => {
       if (context.postId) {
         await reddit.submitComment({
           id: context.postId,
-          text: `🎖️ **u/${username}** just ranked up to **${RANK_NAMES[newRank]}** in Tankies! (${totalXp.toLocaleString()} XP)`,
+          text: `🎖️ **u/${username}** just ranked up to **${RANK_NAMES[newRank]}** in Blast Tanks! (${totalXp.toLocaleString()} XP)`,
         }).catch(() => {});
       }
     }

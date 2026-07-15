@@ -52,7 +52,7 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
             {/* Logo */}
             <motion.img
                 src='/Blasttankslogo.png'
-                alt='Tankies'
+                alt='Blast Tanks'
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -137,7 +137,7 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
             }}>
-                Tankies
+                Blast Tanks
             </p>
         </motion.div>
     );

@@ -145,7 +145,7 @@ challengesRouter.post('/progress', async (c) => {
 				if (context.postId) {
 					await reddit.submitComment({
 						id: context.postId,
-						text: `🎖️ **u/${username}** just ranked up to **${RANK_NAMES[newRank]}** in Tankies! (${newXp.toLocaleString()} XP)`,
+						text: `🎖️ **u/${username}** just ranked up to **${RANK_NAMES[newRank]}** in Blast Tanks! (${newXp.toLocaleString()} XP)`,
 					}).catch(() => {});
 				}
 			}

@@ -68,13 +68,13 @@ export default function Root() {
 					}}>
 						<img
 							src='/Blasttankslogo.png'
-							alt='Tankies'
+							alt='Blast Tanks'
 							style={{ width: 40, height: 40, borderRadius: 10, boxShadow: '0 0 16px rgba(249,115,22,0.5)', flexShrink: 0 }}
 							onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
 						/>
 						<div>
 							<div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#f97316', letterSpacing: 2, lineHeight: 1 }}>
-								TANKIES
+								BLAST TANKS
 							</div>
 							<div style={{ fontSize: '0.6rem', color: '#64748b', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>
 								Multiplayer Tank Battle

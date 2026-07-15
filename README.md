@@ -1,8 +1,40 @@
-# Tankies
+# Blast Tanks
 
-**Tankies** is a multiplayer tank battle game built on Reddit with [Devvit](https://developers.reddit.com/docs). Battle friends and AI bots, earn XP, climb the leaderboard, wager XP in 1v1 matches, and unlock premium tank skins — all inside a Reddit post.
+**Blast Tanks** is a multiplayer tank battle game built on Reddit with [Devvit](https://developers.reddit.com/docs). Battle friends and AI bots, earn XP, climb the leaderboard, wager XP in 1v1 matches, and unlock premium tank skins — all inside a Reddit post.
 
 Submitted to the **2026 Reddit Daily Games Hackathon**.
+
+- **App listing**: https://developers.reddit.com/apps/tooonks3d
+- **Test subreddit**: https://www.reddit.com/r/tankie3d_dev/
+- **Demo post**: https://www.reddit.com/r/tankie3d_dev/comments/1uwzcyo/
+
+---
+
+## How to Play
+
+1. Open any **Blast Tanks** post in `r/tankie3d_dev` and tap **Play** on the animated preview.
+2. On first launch, choose a **display name** and pick a **tank skin**.
+3. You land on the **Quick Play** tab — tap **⚡ Play Now** to drop straight into a match against AI bots. No wait, no setup.
+4. **Drive**: WASD / left joystick (mobile)
+5. **Aim turret**: Mouse move / right-swipe (mobile)
+6. **Fire**: Left-click / Space / fire button (mobile)
+7. **Honk**: K
+8. Survive 3 minutes, rack up kills, and earn XP. The scoreboard appears automatically when the match ends.
+
+### Multiplayer
+1. Go to the **Multiplayer** tab and tap **Host**.
+2. Share the 6-character room code with your opponent via comments or DM.
+3. Your opponent opens the same post, goes to **Multiplayer → Join**, and enters the code.
+4. Both players tap **Play** to start.
+
+### XP Wager
+1. Go to the **Wager** tab and set an XP amount.
+2. Host a lobby — your XP is held in escrow.
+3. Your opponent joins and their XP is deducted too.
+4. Winner takes **2×** the wagered XP. Loser gets nothing. If the match can't complete, both players are refunded.
+
+### Daily Challenge
+Check the Quick Play tab for today's challenge (e.g. "Get 10 kills", "Survive 2 minutes"). Complete it for bonus XP on top of your match earnings.
 
 ---
 

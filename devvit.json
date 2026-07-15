@@ -1,7 +1,6 @@
 {
   "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "tooonks3d",
-  "icon": "Blasttankslogo.png",
   "post": {
     "dir": "dist/client",
     "entrypoints": {
@@ -21,8 +20,8 @@
   "menu": {
     "items": [
       {
-        "label": "Create Tankies Game",
-        "description": "Create a new Tankies multiplayer post",
+        "label": "Create Blast Tanks Game",
+        "description": "Create a new Blast Tanks multiplayer post",
         "location": "subreddit",
         "forUserType": "user",
         "endpoint": "/internal/menu/create-post"
@@ -37,28 +36,28 @@
       {
         "sku": "skin_military",
         "displayName": "Soldier Boy Tank",
-        "description": "Unlock the Soldier Boy tank skin for Tankies",
+        "description": "Unlock the Soldier Boy tank skin for Blast Tanks",
         "price": 5,
         "accountingType": "INSTANT"
       },
       {
         "sku": "skin_studystorm",
         "displayName": "StudyStorm Tank",
-        "description": "Unlock the StudyStorm tank skin for Tankies",
+        "description": "Unlock the StudyStorm tank skin for Blast Tanks",
         "price": 25,
         "accountingType": "INSTANT"
       },
       {
         "sku": "skin_weeb",
         "displayName": "Weeb Kawaii Tank",
-        "description": "Unlock the Weeb Kawaii tank skin for Tankies",
+        "description": "Unlock the Weeb Kawaii tank skin for Blast Tanks",
         "price": 50,
         "accountingType": "INSTANT"
       },
       {
         "sku": "skin_thomas",
         "displayName": "Thomas The Tank",
-        "description": "Unlock the Thomas The Tank skin for Tankies",
+        "description": "Unlock the Thomas The Tank skin for Blast Tanks",
         "price": 100,
         "accountingType": "INSTANT"
       }
