@@ -17,6 +17,15 @@ export class Project extends ThreeGraphics {
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.debug.checkShaderErrors = false;
 
+		// Pin canvas to viewport so game fills screen without scrolling
+		const cs = this.renderer.domElement.style;
+		cs.position = 'fixed';
+		cs.top = '0';
+		cs.left = '0';
+		cs.width = '100vw';
+		cs.height = '100vh';
+		cs.zIndex = '0';
+
 		if (this.projectConfig.parent) {
 			this.parent = document.getElementById(this.projectConfig.parent)!;
 		} else {

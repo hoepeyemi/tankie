@@ -20,7 +20,9 @@ export class PointerLock extends Emittery<{
 	public lock() {
 		if (!this.isLocked()) {
 			try {
-				void this.element.requestPointerLock();
+				const p = this.element.requestPointerLock();
+				// requestPointerLock returns a Promise in some browsers; catch async rejection
+				if (p && typeof p.catch === 'function') p.catch(() => {});
 			} catch {
 				// Silently ignore — sandboxed iframes (e.g. Devvit) block pointer lock
 			}

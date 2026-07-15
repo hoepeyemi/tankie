@@ -104,8 +104,9 @@ export default function GameRenderer() {
 	}
 
 	return (
-		<div>
-			<canvas ref={canvasRef} key='game-canvas' />
+		<div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
+			{/* canvas is appended to body by Project.ts and fixed to viewport */}
+			<canvas ref={canvasRef} style={{ display: 'none' }} />
 			{loading && <LoadingScreen progress={loadProgress} onComplete={() => setLoading(false)} />}
 			{game && <GameUi game={game} />}
 			{game && <GameOver game={game} />}
