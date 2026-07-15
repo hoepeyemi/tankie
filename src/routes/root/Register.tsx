@@ -4,33 +4,35 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Button from '@/ui/Button';
 import { usePlayerSettings, useAudio } from '@/store/store';
+import DailyChallengeCard from '@/ui/DailyChallenge';
 
 export default function Register() {
 	const { setMenu } = usePlayerSettings();
 	const audio = useAudio();
 	const [showSettings, setShowSettings] = useState(false);
 	const tabs = [
-		{ label: 'Quick Play', url: '/quickplay' },
-		{ label: 'Multiplayer', url: '/' },
-		{ label: 'Wager', url: '/wager' },
-		{ label: 'Skins', url: '/skins' },
-		{ label: 'Leaderboard', url: '/leaderboard' },
+		{ label: '⚡ Play', url: '/quickplay' },
+		{ label: '🎮 Multi', url: '/' },
+		{ label: '⚔️ Wager', url: '/wager' },
+		{ label: '🎨 Skins', url: '/skins' },
+		{ label: '🏆 Ranks', url: '/leaderboard' },
 	];
 
 	const location = useLocation();
 
 	return (
 		<>
-			<nav className='p-2 uppercase'>
-				<ul className='flex flex-row border-b-4 border-gray-200 dark:border-gray-700'>
+			<nav className='uppercase' style={{ overflowX: 'auto' }}>
+				<ul className='flex flex-row border-b-4 border-gray-200 dark:border-gray-700' style={{ minWidth: 'max-content', width: '100%' }}>
 					{tabs.map(item => (
 						<NavLink
 							to={item.url}
 							key={item.label}
 							className={({ isActive }) => clsx(
 								isActive && 'bg-white dark:bg-gray-700',
-								'relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-t py-3 text-sm font-bold text-gray-900 transition-colors duration-200 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700/50 md:text-base',
+								'relative flex flex-1 cursor-pointer flex-col items-center justify-center rounded-t px-2 py-2 text-xs font-bold text-gray-900 transition-colors duration-200 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700/50',
 							)}
+							style={{ minWidth: 60 }}
 						>
 							{({ isActive }) => (
 								<>
@@ -81,7 +83,8 @@ export default function Register() {
 					</div>
 				</ul>
 			</nav>
-			<main className='p-6 sm:p-8'>
+			<main className='p-4 sm:p-6'>
+				<DailyChallengeCard />
 				<AnimatePresence mode='wait'>
 					<motion.div
 						initial={{ opacity: 0, y: 10 }}

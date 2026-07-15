@@ -44,35 +44,22 @@ export default function Root() {
 	return (
 		<>
 			<Confetti active={confetti} />
-			<div className='mx-auto flex flex-col items-center px-6 py-8 md:h-screen lg:py-0'>
-				<div className='w-full rounded-lg bg-white/90 shadow backdrop-blur dark:border dark:border-gray-700 dark:bg-gray-800/90 sm:max-w-2xl xl:p-0' style={{ marginTop: '25vh' }}>
+			{/* Full-viewport scrollable container */}
+			<div style={{ minHeight: '100vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 16px 24px' }}>
+				<div className='w-full rounded-lg bg-white/90 shadow backdrop-blur dark:border dark:border-gray-700 dark:bg-gray-800/90' style={{ maxWidth: 600 }}>
 					{
 						showMenu ? <PlayerInfosSelection />
 							: status === NetworkStatus.Connected ? <Connected /> : <Register />
 					}
 				</div>
+			</div>
 
-				{/* Global Top Header */}
-				<div className='fixed top-4 left-0 right-0 px-6 flex justify-between items-start z-50 pointer-events-none'>
-
-					{/* Top Left Menu */}
-					<div className='pointer-events-auto -ml-12 -mt-16 scale-90 origin-top-left'>
-						<Logo />
-					</div>
-
-					{/* Top Right Menu */}
-					<div className='pointer-events-auto flex flex-col items-end gap-2'>
-						<UnifiedWalletButton />
-						<Button
-							size='small'
-							onClick={() => {
-								setShowCredits(true);
-							}}>Controls</Button>
-						<Credits isOpen={showCredits} onClose={() => {
-							setShowCredits(false);
-						}} />
-					</div>
-
+			{/* Top bar — username + controls */}
+			<div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
+				<UnifiedWalletButton />
+				<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+					<Button size='small' onClick={() => setShowCredits(true)}>Controls</Button>
+					<Credits isOpen={showCredits} onClose={() => setShowCredits(false)} />
 				</div>
 			</div>
 		</>

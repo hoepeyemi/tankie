@@ -6,6 +6,7 @@ import { menu } from './routes/menu';
 import { paymentsRouter } from './routes/payments';
 import { gameRouter } from './routes/game';
 import { wagerRouter } from './routes/wager';
+import { challengesRouter } from './routes/challenges';
 
 const app = new Hono();
 const internal = new Hono();
@@ -16,6 +17,7 @@ internal.route('/payments', paymentsRouter);
 app.route('/api', api);
 app.route('/api/game', gameRouter);
 app.route('/api/wager', wagerRouter);
+app.route('/api/challenges', challengesRouter);
 app.route('/internal', internal);
 
 serve({

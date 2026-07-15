@@ -2,49 +2,120 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0"
-    />
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0" />
     <title>Blast Tanks</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body {
-        background: #1a1a2e;
+        background: linear-gradient(160deg, #0f172a 0%, #1e1b4b 60%, #1a1a2e 100%);
         color: #fff;
-        font-family: system-ui, sans-serif;
+        font-family: system-ui, -apple-system, sans-serif;
+        height: 100vh;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100vh;
-        gap: 16px;
+        gap: 10px;
         user-select: none;
       }
-      img.logo { width: 80px; height: 80px; border-radius: 12px; }
-      h1 { font-size: 1.6rem; color: #ff6b35; letter-spacing: 2px; }
-      p { font-size: 0.85rem; color: #888; }
-      button {
-        margin-top: 8px;
-        padding: 14px 40px;
+      .logo { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 0 32px rgba(249,115,22,0.4); }
+      h1 { font-size: 1.5rem; font-weight: 900; color: #f97316; letter-spacing: 3px; text-shadow: 0 0 20px rgba(249,115,22,0.5); }
+      .tagline { font-size: 0.75rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; }
+      .challenge-box {
+        margin-top: 4px;
+        background: rgba(249,115,22,0.12);
+        border: 1px solid rgba(249,115,22,0.3);
+        border-radius: 10px;
+        padding: 8px 14px;
+        width: 90%;
+        max-width: 280px;
+        text-align: center;
+      }
+      .challenge-label { font-size: 10px; color: #fb923c; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+      .challenge-text { font-size: 12px; color: #e2e8f0; }
+      .challenge-bonus { font-size: 11px; color: #fbbf24; margin-top: 2px; }
+      .lb-box {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 8px 14px;
+        width: 90%;
+        max-width: 280px;
+      }
+      .lb-title { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; text-align: center; }
+      .lb-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 2px 0; }
+      .lb-rank { color: #64748b; width: 18px; font-weight: 700; }
+      .lb-name { color: #e2e8f0; flex: 1; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lb-xp { color: #f97316; font-weight: 700; font-size: 11px; }
+      .play-btn {
+        margin-top: 6px;
+        padding: 13px 48px;
         font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        background: #ff6b35;
+        font-weight: 800;
+        letter-spacing: 2px;
+        background: linear-gradient(135deg, #f97316, #ea580c);
         color: #fff;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         cursor: pointer;
-        transition: transform 0.1s, background 0.2s;
+        transition: transform 0.1s, box-shadow 0.2s;
+        box-shadow: 0 4px 20px rgba(249,115,22,0.4);
+        text-transform: uppercase;
       }
-      button:active { transform: scale(0.96); background: #e55a25; }
+      .play-btn:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(249,115,22,0.3); }
+      .streak-badge { font-size: 11px; color: #fbbf24; }
     </style>
   </head>
   <body>
     <img class="logo" src="/Blasttankslogo.png" alt="Blast Tanks" />
     <h1>BLAST TANKS</h1>
-    <p>3D Multiplayer Tank Battle</p>
-    <button id="play-btn">▶ PLAY NOW</button>
+    <p class="tagline">3D Multiplayer Tank Battle</p>
+
+    <div class="challenge-box" id="challenge-box" style="display:none">
+      <div class="challenge-label">🎯 Daily Challenge</div>
+      <div class="challenge-text" id="challenge-text">Loading...</div>
+      <div class="challenge-bonus" id="challenge-bonus"></div>
+    </div>
+
+    <div class="lb-box" id="lb-box" style="display:none">
+      <div class="lb-title">🏆 Top Players</div>
+      <div id="lb-rows"></div>
+    </div>
+
+    <button class="play-btn" id="play-btn">▶ PLAY NOW</button>
+
     <script type="module" src="splash.ts" defer></script>
+    <script>
+      // Fetch live data for display
+      Promise.all([
+        fetch('/api/challenges/today').then(r => r.json()).catch(() => null),
+        fetch('/api/leaderboard').then(r => r.json()).catch(() => null),
+      ]).then(([challengeData, lbData]) => {
+        if (challengeData?.challenge) {
+          const c = challengeData.challenge;
+          document.getElementById('challenge-text').textContent = c.description;
+          const bonus = document.getElementById('challenge-bonus');
+          if (challengeData.streak > 0) {
+            bonus.textContent = `🔥 ${challengeData.streak}-day streak · +${c.bonusXp} XP bonus`;
+          } else {
+            bonus.textContent = `+${c.bonusXp} XP bonus on completion`;
+          }
+          document.getElementById('challenge-box').style.display = 'block';
+        }
+        if (lbData?.entries?.length > 0) {
+          const top3 = lbData.entries.slice(0, 3);
+          const medals = ['🥇', '🥈', '🥉'];
+          document.getElementById('lb-rows').innerHTML = top3.map((e, i) =>
+            `<div class="lb-row">
+              <span class="lb-rank">${medals[i]}</span>
+              <span class="lb-name">u/${e.username}</span>
+              <span class="lb-xp">${e.xp.toLocaleString()} XP</span>
+            </div>`
+          ).join('');
+          document.getElementById('lb-box').style.display = 'block';
+        }
+      });
+    </script>
   </body>
 </html>

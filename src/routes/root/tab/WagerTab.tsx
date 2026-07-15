@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNetwork, usePlayerSettings } from '@/store/store';
-import { Network } from '@game/network/Network';
 import Button from '@/ui/Button';
 import CodeInput from '@/ui/CodeInput';
 import {
@@ -23,8 +22,7 @@ export default function WagerTab() {
 	const [myXp, setMyXp] = useState<number | null>(null);
 	const [wagerInfo, setWagerInfo] = useState<{ host: string; amount: number } | null>(null);
 	const [error, setError] = useState('');
-	const [hosting, setHosting] = useState(false);
-	const [hostedCode, setHostedCode] = useState('');
+	const [busy, setBusy] = useState(false);
 
 	useEffect(() => {
 		getMyXp().then(setMyXp).catch(() => setMyXp(0));
@@ -32,22 +30,15 @@ export default function WagerTab() {
 
 	const handleHost = async () => {
 		setError('');
-		setHosting(true);
+		setBusy(true);
 		try {
-			const { code: roomCode, network } = await hostGame({ name, tank });
-			// Create the wager — reserves host XP
-			const res = await createWager(roomCode, amount);
-			if (!res.ok) {
-				setError(res.error ?? 'Failed to create wager');
-				network.disconnect();
-				setHosting(false);
-				return;
-			}
-			setHostedCode(roomCode);
-			if (res.hostXp !== undefined) setMyXp(res.hostXp);
+			// Pass wagerAmount into hostGame so it's stored in the network store
+			// createWager is called from Connected component when it detects wagerAmount > 0
+			await hostGame({ name, tank, wagerAmount: amount });
+			// After this, Root.tsx switches to Connected — store carries the wagerAmount
 		} catch (e) {
 			setError(e instanceof Error ? e.message : 'Error creating wager');
-			setHosting(false);
+			setBusy(false);
 		}
 	};
 
@@ -62,29 +53,22 @@ export default function WagerTab() {
 
 	const handleJoin = async () => {
 		setError('');
+		setBusy(true);
 		try {
 			const wagerRes = await joinWager(code);
-			if (!wagerRes.ok) { setError(wagerRes.error ?? 'Failed to join wager'); return; }
-			await joinGame(code, { name, tank });
+			if (!wagerRes.ok) { setError(wagerRes.error ?? 'Failed to join wager'); setBusy(false); return; }
 			if (wagerRes.challengerXp !== undefined) setMyXp(wagerRes.challengerXp);
+			await joinGame(code, { name, tank });
 		} catch (e) {
 			setError(e instanceof Error ? e.message : 'Error joining wager');
+			setBusy(false);
 		}
-	};
-
-	const handleCancelWager = async () => {
-		await cancelWager(hostedCode);
-		setHostedCode('');
-		setHosting(false);
-		setMode('choose');
 	};
 
 	if (mode === 'choose') {
 		return (
 			<div className='space-y-4'>
-				<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>
-					XP Wager
-				</h2>
+				<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>XP Wager</h2>
 				{myXp !== null && (
 					<p className='text-center text-sm text-gray-400'>
 						Your XP: <span className='font-bold text-yellow-400'>{myXp.toLocaleString()}</span>
@@ -93,48 +77,16 @@ export default function WagerTab() {
 				<p className='text-center text-sm text-gray-500 dark:text-gray-400'>
 					Winner takes all — stake XP and battle for supremacy.
 				</p>
-				<Button onClick={() => setMode('host')} fullWidth size='large'>
-					Host Wager Match
-				</Button>
-				<Button onClick={() => setMode('join')} fullWidth size='large'>
-					Join Wager Match
-				</Button>
+				<Button onClick={() => setMode('host')} fullWidth size='large'>Host Wager Match</Button>
+				<Button onClick={() => setMode('join')} fullWidth size='large'>Join Wager Match</Button>
 			</div>
 		);
 	}
 
 	if (mode === 'host') {
-		// Waiting for challenger after hosting
-		if (hosting && hostedCode) {
-			return (
-				<div className='space-y-4'>
-					<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>Waiting for Challenger</h2>
-					<p className='text-center text-sm text-gray-400'>Share this code:</p>
-					<div className='text-center text-4xl font-black tracking-widest text-yellow-400'>{hostedCode}</div>
-					<p className='text-center text-sm text-yellow-500 font-semibold'>
-						{amount.toLocaleString()} XP wagered — winner takes {(amount * 2).toLocaleString()} XP
-					</p>
-					{status === NetworkStatus.Connected && (
-						<Button fullWidth size='large' onClick={() => {}}>
-							Play →
-						</Button>
-					)}
-					<button
-						onClick={handleCancelWager}
-						className='w-full text-center text-sm text-red-400 hover:text-red-300 mt-2'
-					>
-						Cancel &amp; Refund
-					</button>
-					{error && <p className='text-center text-sm text-red-400'>{error}</p>}
-				</div>
-			);
-		}
-
 		return (
 			<div className='space-y-4'>
-				<button onClick={() => setMode('choose')} className='text-sm text-gray-400 hover:text-white'>
-					← Back
-				</button>
+				<button onClick={() => setMode('choose')} className='text-sm text-gray-400 hover:text-white'>← Back</button>
 				<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>Host Wager Match</h2>
 				{myXp !== null && (
 					<p className='text-center text-sm text-gray-400'>
@@ -162,12 +114,12 @@ export default function WagerTab() {
 							</button>
 						))}
 					</div>
-					<p className='text-center text-xs text-gray-500'>Winner receives {((amount) * 2).toLocaleString()} XP</p>
+					<p className='text-center text-xs text-gray-500'>Winner receives {(amount * 2).toLocaleString()} XP</p>
 				</div>
 				{error && <p className='text-center text-sm text-red-400'>{error}</p>}
 				<Button
 					onClick={handleHost}
-					loading={hosting}
+					loading={busy}
 					disabled={!myXp || amount > myXp || amount < 10}
 					fullWidth
 					size='large'
@@ -192,25 +144,21 @@ export default function WagerTab() {
 			)}
 			<CodeInput value={code} onChange={v => { setCode(v); setWagerInfo(null); setError(''); }} length={6} className='mb-2' />
 			{!wagerInfo && (
-				<Button onClick={handleJoinLookup} disabled={code.length !== 6} fullWidth size='large'>
-					Look Up Match
-				</Button>
+				<Button onClick={handleJoinLookup} disabled={code.length !== 6} fullWidth size='large'>Look Up Match</Button>
 			)}
 			{wagerInfo && (
 				<div className='rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 space-y-3'>
 					<p className='text-center text-sm text-gray-300'>
 						Hosted by <span className='font-bold text-white'>u/{wagerInfo.host}</span>
 					</p>
-					<p className='text-center text-2xl font-black text-yellow-400'>
-						{wagerInfo.amount.toLocaleString()} XP
-					</p>
+					<p className='text-center text-2xl font-black text-yellow-400'>{wagerInfo.amount.toLocaleString()} XP</p>
 					<p className='text-center text-xs text-gray-400'>Winner takes {(wagerInfo.amount * 2).toLocaleString()} XP</p>
 					{myXp !== null && myXp < wagerInfo.amount && (
 						<p className='text-center text-sm text-red-400'>Not enough XP (need {wagerInfo.amount.toLocaleString()})</p>
 					)}
 					<Button
 						onClick={handleJoin}
-						loading={status === NetworkStatus.Connecting}
+						loading={busy || status === NetworkStatus.Connecting}
 						disabled={myXp !== null && myXp < wagerInfo.amount}
 						fullWidth
 						size='large'

@@ -8,13 +8,14 @@ import { Howl } from 'howler';
 import { type TankType } from '@game/models/TankType';
 
 type Store = {
-	hostGame: (metadata: Metadata & { roomOverride?: string }) => Promise<{ code: string; network: DevvitNetwork }>;
+	hostGame: (metadata: Metadata & { roomOverride?: string; wagerAmount?: number }) => Promise<{ code: string; network: DevvitNetwork }>;
 	joinGame: (code: string, metadata: Metadata) => Promise<{ code: string; network: DevvitNetwork }>;
 	quickPlay: (metadata: Metadata) => Promise<{ code: string; network: OfflineNetwork }>;
 	code?: string;
 	network?: Network<NetworkEvents, Metadata>;
 	status: NetworkStatus;
 	peers: PeerData[];
+	wagerAmount: number;
 	readonly maxNbPlayers: number;
 };
 
@@ -36,13 +37,14 @@ export const useNetwork = create<Store>((set, get) => {
 	return {
 		status: NetworkStatus.Disconnected,
 		peers: [],
-		async hostGame(metadata: Metadata & { roomOverride?: string }) {
+		wagerAmount: 0,
+		async hostGame(metadata: Metadata & { roomOverride?: string; wagerAmount?: number }) {
 			const { code } = metadata.roomOverride
 				? Network.createRoomId({ prefix: 'TOONKS', value: metadata.roomOverride })
 				: Network.createRoomId({ prefix: 'TOONKS', length: 6 });
 			const network = switchNetwork(new DevvitNetwork());
 			await network.connect({ isHost: true, code, metadata });
-			set({ code });
+			set({ code, wagerAmount: metadata.wagerAmount ?? 0 });
 			return { network, code };
 		},
 		async joinGame(code, metadata: Metadata) {
@@ -53,12 +55,10 @@ export const useNetwork = create<Store>((set, get) => {
 		},
 		async quickPlay(metadata: Metadata) {
 			const network = switchNetwork(new OfflineNetwork());
-			await network.connect({
-				metadata,
-			});
+			await network.connect({ metadata });
 			useMatchStore.getState().setMatchState(180000, 'PLAYING');
 			const code = 'OFFLINE';
-			set({ code });
+			set({ code, wagerAmount: 0 });
 			return { network, code };
 		},
 		maxNbPlayers: 6,

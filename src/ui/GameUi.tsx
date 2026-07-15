@@ -6,6 +6,7 @@ import type TankPlayer from '@game/models/TankPlayer';
 import type Tank from '@game/models/Tank';
 import ChatUi from '@/ui/ChatUi';
 import Scoreboard from '@/ui/Scoreboard';
+import VirtualGamepad from '@/ui/VirtualGamepad';
 
 export default function GameUi({ game }: { game: Game }) {
 	const [tanks, setTanks] = useState<Tank[]>([]);
@@ -26,6 +27,7 @@ export default function GameUi({ game }: { game: Game }) {
 		<>
 			<Scoreboard game={game} />
 			<PlayersStatus player={player} tanks={tanks} />
+			<VirtualGamepad />
 			<ChatUi className='absolute bottom-0 left-0 h-2/5 w-full max-w-sm p-3 text-sm' />
 			<Toaster
 				position='top-right'

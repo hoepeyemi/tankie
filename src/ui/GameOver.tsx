@@ -4,14 +4,15 @@ import Button from '@/ui/Button';
 import clsx from 'clsx';
 import type Game from '@game/scenes/Game';
 import { motion } from 'framer-motion';
-import { submitScore, settleWager } from '@/lib/devvit-bridge';
+import { submitScore, settleWager, reportChallengeProgress } from '@/lib/devvit-bridge';
 import { useNavigate } from 'react-router-dom';
 
 export default function GameOver({ game }: { game: Game }) {
     const navigate = useNavigate();
-    const { state } = useMatchStore();
+    const { state, time } = useMatchStore();
     const { network, code } = useNetwork();
     const hasSubmitted = useRef(false);
+    const matchStartTime = useRef(Date.now());
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
     const stats = state === 'OVER'
@@ -42,6 +43,16 @@ export default function GameOver({ game }: { game: Game }) {
         if (code && code !== 'OFFLINE' && network?.isHost && winner?.pseudo) {
             settleWager(code, winner.pseudo).catch(() => {});
         }
+        // Report wager win challenge if local player won
+        if (winner?.isLocal && code && code !== 'OFFLINE') {
+            reportChallengeProgress('wager_win', 1).catch(() => {});
+        }
+
+        // Report challenge progress
+        const survivedSeconds = Math.floor((Date.now() - matchStartTime.current) / 1000);
+        if (localStats.kills > 0) reportChallengeProgress('kills', localStats.kills).catch(() => {});
+        if (survivedSeconds > 0) reportChallengeProgress('survive', survivedSeconds).catch(() => {});
+        reportChallengeProgress('matches', 1).catch(() => {});
     }, [state, localStats]);
 
     useEffect(() => {

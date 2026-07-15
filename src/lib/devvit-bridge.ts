@@ -58,6 +58,27 @@ export async function getOwnedSkins(): Promise<string[]> {
   return res.skins;
 }
 
+export type DailyChallenge = {
+  id: string;
+  type: 'kills' | 'survive' | 'wager_win' | 'matches';
+  target: number;
+  description: string;
+  bonusXp: number;
+};
+
+export async function getDailyChallenge(): Promise<{ challenge: DailyChallenge; progress: number; completed: boolean; streak: number } | null> {
+  try {
+    return await api('/api/challenges/today');
+  } catch { return null; }
+}
+
+export async function reportChallengeProgress(type: DailyChallenge['type'], amount: number): Promise<{ bonusAwarded: boolean; streak: number }> {
+  if (!isInReddit()) return { bonusAwarded: false, streak: 0 };
+  try {
+    return await api('/api/challenges/progress', { method: 'POST', body: JSON.stringify({ type, amount }) });
+  } catch { return { bonusAwarded: false, streak: 0 }; }
+}
+
 export async function getMyXp(): Promise<number> {
   if (!isInReddit()) return 999;
   try {
