@@ -2,8 +2,7 @@ import React from 'react';
 import Button from '@/ui/Button';
 import { generatePath, useNavigate } from 'react-router-dom';
 import { useNetwork } from '@/store/store';
-import TankModel from '@/ui/TankModel';
-import { Canvas } from '@react-three/fiber';
+import { TankTypes } from '@game/models/TankType';
 
 export default function Connected() {
 	const navigate = useNavigate();
@@ -38,18 +37,22 @@ export default function Connected() {
 				<span className='text-xl'>{maxNbPlayers}</span>
 			</p>
 			<div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
-				{peers.map(peer => (
-					<div className='flex flex-col items-center space-y-2 rounded-lg bg-gray-100 py-4 dark:bg-gray-700' key={peer.uuid}>
-						<h2 className='w-full truncate px-4 text-center text-lg font-bold text-gray-900 dark:text-white'>
-							{peer.metadata.name}
-						</h2>
-						<div className='w-full'>
-							<Canvas camera={{ fov: 35, zoom: 1.5 }}>
-								<TankModel type={peer.metadata.tank} />
-							</Canvas>
+				{peers.map(peer => {
+					const tankInfo = TankTypes[peer.metadata.tank] ?? TankTypes.heig;
+					return (
+						<div className='flex flex-col items-center space-y-2 rounded-lg bg-gray-100 py-4 dark:bg-gray-700' key={peer.uuid}>
+							<h2 className='w-full truncate px-4 text-center text-lg font-bold text-gray-900 dark:text-white'>
+								{peer.metadata.name}
+							</h2>
+							<img
+								src={tankInfo.url}
+								alt={tankInfo.name}
+								className='w-full object-contain'
+								style={{ maxHeight: 80 }}
+							/>
 						</div>
-					</div>
-				))}
+					);
+				})}
 			</div>
 			<Button onClick={() => navigate('/game')} fullWidth size='large'>
 				Play

@@ -11,10 +11,12 @@ export class AdvancedThirdPersonControls {
 	constructor(private readonly cam: PerspectiveCamera | OrthographicCamera, private readonly element: HTMLElement, private readonly config: ThirdPersonControlsConfig) {
 		this.pointerLock = new PointerLock(this.element);
 		this.pointerDrag = new PointerDrag(this.element);
+
 		this.pointerDrag.onMove(delta => {
-			if (this.pointerLock?.isLocked()) {
-				this.delta = delta;
-			}
+			// Always allow camera drag — pointer lock is optional (enhances UX on desktop
+			// but is blocked in sandboxed iframes like Devvit). The game must be playable
+			// either way.
+			this.delta = delta;
 		});
 	}
 
