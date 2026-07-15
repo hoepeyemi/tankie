@@ -12,7 +12,7 @@ export default function Register() {
 	const [showSettings, setShowSettings] = useState(false);
 	const tabs = [
 		{ label: '⚡ Play', url: '/quickplay' },
-		{ label: '🎮 Multi', url: '/' },
+		{ label: '🎮 Multiplayer', url: '/' },
 		{ label: '⚔️ Wager', url: '/wager' },
 		{ label: '🎨 Skins', url: '/skins' },
 		{ label: '🏆 Ranks', url: '/leaderboard' },
