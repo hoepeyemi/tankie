@@ -1,19 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMatchStore, useNetwork } from '@/store/store';
 import Button from '@/ui/Button';
-import clsx from 'clsx';
 import type Game from '@game/scenes/Game';
 import { motion } from 'framer-motion';
-import { submitScore, settleWager, reportChallengeProgress } from '@/lib/devvit-bridge';
+import { submitScore, settleWager, cancelWager, reportChallengeProgress } from '@/lib/devvit-bridge';
 import { useNavigate } from 'react-router-dom';
 
 export default function GameOver({ game }: { game: Game }) {
     const navigate = useNavigate();
     const { state, time } = useMatchStore();
-    const { network, code } = useNetwork();
+    const { network, code, wagerAmount } = useNetwork();
     const hasSubmitted = useRef(false);
     const matchStartTime = useRef(Date.now());
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [wagerOutcome, setWagerOutcome] = useState<{ won: boolean; prize: number } | null>(null);
+    const isMobile = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
 
     const stats = state === 'OVER'
         ? game.tanks.array.map(tank => ({
@@ -33,22 +34,43 @@ export default function GameOver({ game }: { game: Game }) {
         setSubmitStatus('submitting');
 
         const winner = stats[0];
+        // Persist last match for splash screen comeback hook
+        try {
+            localStorage.setItem('bt_last_match', JSON.stringify({
+                kills: localStats.kills,
+                deaths: localStats.deaths,
+                xp: localStats.xp,
+                won: winner?.isLocal ?? false,
+                ts: Date.now(),
+            }));
+        } catch { /* storage may be blocked in sandboxed iframe */ }
+
         submitScore(localStats.kills, localStats.deaths, localStats.xp)
             .then(() => setSubmitStatus('success'))
             .catch(err => {
                 console.error('[DevvitBridge] Failed to submit score:', err);
                 setSubmitStatus('error');
             });
-        // Settle wager if this was a wager match (host settles on behalf of both)
-        if (code && code !== 'OFFLINE' && network?.isHost && winner?.pseudo) {
-            settleWager(code, winner.pseudo).catch(() => {});
+
+        // Settle wager — only host settles, only for real wager matches
+        if (code && code !== 'OFFLINE' && network?.isHost && wagerAmount > 0) {
+            const hostWon = winner?.isLocal ?? false;
+            settleWager(code, hostWon)
+                .then((res: any) => {
+                    if (res?.prize) setWagerOutcome({ won: hostWon, prize: res.prize });
+                })
+                .catch(() => {
+                    // Settle failed — refund both players so XP isn't stuck indefinitely
+                    cancelWager(code).catch(() => {});
+                });
         }
-        // Report wager win challenge if local player won
-        if (winner?.isLocal && code && code !== 'OFFLINE') {
+
+        // Report wager win challenge — only for actual wager matches (not free multiplayer)
+        if (winner?.isLocal && code && code !== 'OFFLINE' && wagerAmount > 0) {
             reportChallengeProgress('wager_win', 1).catch(() => {});
         }
 
-        // Report challenge progress
+        // Report other challenge progress
         const survivedSeconds = Math.floor((Date.now() - matchStartTime.current) / 1000);
         if (localStats.kills > 0) reportChallengeProgress('kills', localStats.kills).catch(() => {});
         if (survivedSeconds > 0) reportChallengeProgress('survive', survivedSeconds).catch(() => {});
@@ -86,57 +108,85 @@ export default function GameOver({ game }: { game: Game }) {
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className='w-full max-w-2xl rounded-2xl bg-slate-900/90 p-8 shadow-2xl border border-slate-700/50'
+                className='w-full max-w-2xl rounded-2xl bg-slate-900/90 p-4 shadow-2xl border border-slate-700/50'
+                style={{ padding: '16px' }}
             >
-                <table className='w-full text-left text-lg text-gray-300'>
-                    <thead className='text-sm uppercase text-gray-400 border-b border-gray-700'>
-                        <tr>
-                            <th className='px-4 py-3'>Player</th>
-                            <th className='px-4 py-3 text-center'>Kills</th>
-                            <th className='px-4 py-3 text-center'>Deaths</th>
-                            <th className='px-4 py-3 text-right text-toonks-orange'>XP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {stats.map((s, i) => (
-                            <tr key={i} className={clsx('border-b border-gray-800/50', { 'bg-toonks-orange/20': s.isLocal })}>
-                                <td className='px-4 py-4 font-bold text-white'>
-                                    {i === 0 && <span className='mr-2 text-yellow-500 font-extrabold text-sm'>1ST</span>}
-                                    {s.pseudo}
-                                </td>
-                                <td className='px-4 py-4 text-center font-mono'>{s.kills}</td>
-                                <td className='px-4 py-4 text-center font-mono'>{s.deaths}</td>
-                                <td className='px-4 py-4 text-right font-bold text-toonks-orange font-mono'>+{s.xp}</td>
+                {/* Responsive scroll wrapper — prevents horizontal overflow on mobile */}
+                <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', minWidth: 320, borderCollapse: 'collapse', fontSize: '0.95rem', color: '#d1d5db' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid #374151', fontSize: '0.75rem', textTransform: 'uppercase', color: '#9ca3af' }}>
+                                <th style={{ padding: '10px 12px', textAlign: 'left' }}>Player</th>
+                                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Kills</th>
+                                <th style={{ padding: '10px 12px', textAlign: 'center' }}>Deaths</th>
+                                <th style={{ padding: '10px 12px', textAlign: 'right', color: '#f97316' }}>XP</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {stats.map((s, i) => (
+                                <tr key={i} style={{
+                                    borderBottom: '1px solid rgba(55,65,81,0.5)',
+                                    background: s.isLocal ? 'rgba(249,115,22,0.12)' : 'transparent',
+                                }}>
+                                    <td style={{ padding: '12px', fontWeight: 700, color: '#fff', whiteSpace: 'nowrap' }}>
+                                        {i === 0 && <span style={{ marginRight: 6, color: '#eab308', fontWeight: 800, fontSize: '0.75rem' }}>1ST</span>}
+                                        {s.pseudo}
+                                    </td>
+                                    <td style={{ padding: '12px', textAlign: 'center', fontFamily: 'monospace' }}>{s.kills}</td>
+                                    <td style={{ padding: '12px', textAlign: 'center', fontFamily: 'monospace' }}>{s.deaths}</td>
+                                    <td style={{ padding: '12px', textAlign: 'right', fontWeight: 700, color: '#f97316', fontFamily: 'monospace' }}>+{s.xp}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-                <div className='mt-4 text-center text-sm space-y-1'>
+                {/* Wager outcome banner */}
+                {wagerOutcome && (
+                    <div style={{
+                        marginTop: 12,
+                        padding: '10px 14px',
+                        borderRadius: 10,
+                        textAlign: 'center',
+                        fontWeight: 700,
+                        fontSize: '0.9rem',
+                        background: wagerOutcome.won ? 'rgba(74,222,128,0.15)' : 'rgba(239,68,68,0.12)',
+                        border: `1px solid ${wagerOutcome.won ? 'rgba(74,222,128,0.3)' : 'rgba(239,68,68,0.25)'}`,
+                        color: wagerOutcome.won ? '#4ade80' : '#f87171',
+                    }}>
+                        {wagerOutcome.won
+                            ? `⚔️ Wager won! +${wagerOutcome.prize} XP`
+                            : `⚔️ Wager lost. Better luck next time.`}
+                    </div>
+                )}
+
+                <div style={{ marginTop: 12, textAlign: 'center', fontSize: '0.85rem' }}>
                     {submitStatus === 'submitting' && (
-                        <span className='text-yellow-400 animate-pulse'>Saving results to leaderboard...</span>
+                        <span style={{ color: '#facc15' }}>Saving results to leaderboard...</span>
                     )}
                     {submitStatus === 'success' && (
-                        <span className='text-green-400'>Results saved to Reddit leaderboard!</span>
+                        <span style={{ color: '#4ade80' }}>Results saved to Reddit leaderboard!</span>
                     )}
                     {submitStatus === 'error' && (
-                        <span className='text-red-400'>Could not save score. Check your connection.</span>
+                        <span style={{ color: '#f87171' }}>Could not save score. Check your connection.</span>
                     )}
                 </div>
 
-                <div className='mt-8 pt-4 border-t border-gray-800 text-center'>
-                    <p className='text-gray-500 text-sm'>Press Esc to exit</p>
-                </div>
+                {!isMobile && (
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid #1f2937', textAlign: 'center' }}>
+                        <p style={{ color: '#6b7280', fontSize: '0.75rem' }}>Press Esc to exit</p>
+                    </div>
+                )}
             </motion.div>
 
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className='mt-12'
+                style={{ marginTop: 32, display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}
             >
                 <Button onClick={() => { network?.disconnect(); navigate('/'); }}>
-                    Return to Main Menu
+                    ⚡ Play Again
                 </Button>
             </motion.div>
         </motion.div>

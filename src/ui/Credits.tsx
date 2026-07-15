@@ -70,6 +70,10 @@ export default function Credits({isOpen, onClose}: {isOpen: boolean; onClose: ()
 						<span>Show Scoreboard (Hold)</span>
 						<KBD>Tab</KBD>
 					</li>
+					<li className='flex items-center justify-between'>
+						<span>Open Chat</span>
+						<KBD>/</KBD>
+					</li>
 
 					<hr className='border-gray-300 dark:border-gray-600' />
 

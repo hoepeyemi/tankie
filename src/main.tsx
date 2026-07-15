@@ -43,9 +43,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 				<MemoryRouter>
 					<Routes>
 						<Route path='/' element={<Root />}>
-							<Route index element={<MultiplayerTab />} />
-							<Route path='join/:code?' element={<MultiplayerTab />} />
+							<Route index element={<QuickPlayTab />} />
 							<Route path='quickplay' element={<QuickPlayTab />} />
+							<Route path='multiplayer' element={<MultiplayerTab />} />
+							<Route path='join/:code?' element={<MultiplayerTab />} />
 							<Route path='wager' element={<WagerTab />} />
 							<Route path='skins' element={<SkinsTab />} />
 							<Route path='leaderboard' element={<LeaderboardTab />} />

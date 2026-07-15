@@ -70,7 +70,8 @@ export default function LeaderboardTab() {
                     ↻ Refresh
                 </button>
             </div>
-            <table className='w-full text-left text-sm'>
+            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <table className='w-full text-left text-sm' style={{ minWidth: 360 }}>
                 <thead className='text-xs uppercase text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700'>
                     <tr>
                         <th className='px-2 py-2'>#</th>
@@ -108,6 +109,7 @@ export default function LeaderboardTab() {
                     })}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 }

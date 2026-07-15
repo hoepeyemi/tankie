@@ -8,11 +8,23 @@ const MAX_WAGER = 5000;
 
 function wagerKey(code: string) { return `wager:${code}`; }
 
+async function rateLimit(username: string, action: string, windowSecs: number, max: number): Promise<boolean> {
+	const key = `rl:${action}:${username}`;
+	const count = await redis.incrBy(key, 1);
+	if (count === 1) await redis.expire(key, windowSecs);
+	return count <= max;
+}
+
 // POST /api/wager/create — host creates a wager room
 wagerRouter.post('/create', async (c) => {
 	const { code, amount } = await c.req.json<{ code: string; amount: number }>();
 	const username = context.username;
 	if (!username) return c.json({ error: 'Not logged in' }, 401);
+
+	if (!await rateLimit(username, 'wager_create', 60, 5)) {
+		return c.json({ error: 'Too many requests' }, 429);
+	}
+
 	if (amount < MIN_WAGER || amount > MAX_WAGER) {
 		return c.json({ error: `Wager must be between ${MIN_WAGER} and ${MAX_WAGER} XP` }, 400);
 	}
@@ -24,8 +36,10 @@ wagerRouter.post('/create', async (c) => {
 		return c.json({ error: `Not enough XP. You have ${hostXp} XP.` }, 400);
 	}
 
-	// Reserve XP (hold it)
-	await redis.hSet(`player:${username}`, { xp: String(hostXp - amount) });
+	// Reserve XP (hold it) — sync lb:xp so leaderboard stays accurate
+	const newHostXp = hostXp - amount;
+	await redis.hSet(`player:${username}`, { xp: String(newHostXp) });
+	await redis.zAdd('lb:xp', { member: username, score: newHostXp });
 	await redis.hSet(wagerKey(code), {
 		host: username,
 		amount: String(amount),
@@ -33,7 +47,7 @@ wagerRouter.post('/create', async (c) => {
 	});
 	await redis.expire(wagerKey(code), 3600);
 
-	return c.json({ ok: true, amount, hostXp: hostXp - amount });
+	return c.json({ ok: true, amount, hostXp: newHostXp });
 });
 
 // POST /api/wager/join — challenger joins a wager room
@@ -41,6 +55,10 @@ wagerRouter.post('/join', async (c) => {
 	const { code } = await c.req.json<{ code: string }>();
 	const username = context.username;
 	if (!username) return c.json({ error: 'Not logged in' }, 401);
+
+	if (!await rateLimit(username, 'wager_join', 60, 5)) {
+		return c.json({ error: 'Too many requests' }, 429);
+	}
 
 	const wager = await redis.hGetAll(wagerKey(code));
 	if (!wager['host']) return c.json({ error: 'Wager not found' }, 404);
@@ -54,14 +72,16 @@ wagerRouter.post('/join', async (c) => {
 		return c.json({ error: `Not enough XP. You have ${challengerXp} XP, need ${amount}.` }, 400);
 	}
 
-	// Reserve challenger XP
-	await redis.hSet(`player:${username}`, { xp: String(challengerXp - amount) });
+	// Reserve challenger XP — sync lb:xp so leaderboard stays accurate
+	const newChallengerXp = challengerXp - amount;
+	await redis.hSet(`player:${username}`, { xp: String(newChallengerXp) });
+	await redis.zAdd('lb:xp', { member: username, score: newChallengerXp });
 	await redis.hSet(wagerKey(code), {
 		challenger: username,
 		status: 'active',
 	});
 
-	return c.json({ ok: true, amount, host: wager['host'], challengerXp: challengerXp - amount });
+	return c.json({ ok: true, amount, host: wager['host'], challengerXp: newChallengerXp });
 });
 
 // GET /api/wager/info/:code — get wager info (amount, status)
@@ -77,24 +97,28 @@ wagerRouter.get('/info/:code', async (c) => {
 	});
 });
 
-// POST /api/wager/settle — host reports the winner after match ends
+// POST /api/wager/settle — only the host can settle; hostWon determines winner from stored usernames
 wagerRouter.post('/settle', async (c) => {
-	const { code, winner } = await c.req.json<{ code: string; winner: string }>();
+	const { code, hostWon } = await c.req.json<{ code: string; hostWon: boolean }>();
 	const username = context.username;
 	if (!username) return c.json({ error: 'Not logged in' }, 401);
+
+	if (!await rateLimit(username, 'wager_settle', 60, 3)) {
+		return c.json({ error: 'Too many requests' }, 429);
+	}
 
 	const wager = await redis.hGetAll(wagerKey(code));
 	if (!wager['host']) return c.json({ error: 'Wager not found' }, 404);
 	if (wager['status'] !== 'active') return c.json({ error: 'Wager not active' }, 400);
-	// Only host or challenger can settle
-	if (username !== wager['host'] && username !== wager['challenger']) {
-		return c.json({ error: 'Not a participant' }, 403);
-	}
+	// Only the host can settle — prevents challenger from self-declaring winner
+	if (username !== wager['host']) return c.json({ error: 'Only the host can settle the wager' }, 403);
+	if (!wager['challenger']) return c.json({ error: 'No challenger has joined' }, 400);
 
+	// Winner determined from server-stored Reddit usernames — no client-supplied name trusted
+	const winner = hostWon ? wager['host'] : wager['challenger'];
 	const amount = Number(wager['amount']);
 	const prize = amount * 2;
 
-	// Give winner double the wager
 	const winnerData = await redis.hGetAll(`player:${winner}`);
 	const winnerXp = Number(winnerData['xp'] ?? 0);
 	await redis.hSet(`player:${winner}`, { xp: String(winnerXp + prize) });
@@ -105,7 +129,7 @@ wagerRouter.post('/settle', async (c) => {
 	return c.json({ ok: true, winner, prize });
 });
 
-// POST /api/wager/cancel — cancel a wager and refund XP
+// POST /api/wager/cancel — cancel a wager and refund XP (host or challenger may cancel)
 wagerRouter.post('/cancel', async (c) => {
 	const { code } = await c.req.json<{ code: string }>();
 	const username = context.username;
@@ -113,21 +137,25 @@ wagerRouter.post('/cancel', async (c) => {
 
 	const wager = await redis.hGetAll(wagerKey(code));
 	if (!wager['host']) return c.json({ error: 'Wager not found' }, 404);
-	if (username !== wager['host']) return c.json({ error: 'Only host can cancel' }, 403);
+	if (username !== wager['host'] && username !== wager['challenger']) {
+		return c.json({ error: 'Not a participant' }, 403);
+	}
 	if (wager['status'] === 'settled') return c.json({ error: 'Already settled' }, 400);
 
 	const amount = Number(wager['amount']);
 
-	// Refund host
+	// Refund host — sync lb:xp
 	const hostData = await redis.hGetAll(`player:${wager['host']}`);
-	await redis.hSet(`player:${wager['host']}`, { xp: String(Number(hostData['xp'] ?? 0) + amount) });
+	const refundedHostXp = Number(hostData['xp'] ?? 0) + amount;
+	await redis.hSet(`player:${wager['host']}`, { xp: String(refundedHostXp) });
+	await redis.zAdd('lb:xp', { member: wager['host'], score: refundedHostXp });
 
-	// Refund challenger if they joined
+	// Refund challenger if they joined — sync lb:xp
 	if (wager['challenger']) {
 		const challengerData = await redis.hGetAll(`player:${wager['challenger']}`);
-		await redis.hSet(`player:${wager['challenger']}`, {
-			xp: String(Number(challengerData['xp'] ?? 0) + amount),
-		});
+		const refundedChallengerXp = Number(challengerData['xp'] ?? 0) + amount;
+		await redis.hSet(`player:${wager['challenger']}`, { xp: String(refundedChallengerXp) });
+		await redis.zAdd('lb:xp', { member: wager['challenger'], score: refundedChallengerXp });
 	}
 
 	await redis.hSet(wagerKey(code), { status: 'cancelled' });

@@ -91,9 +91,9 @@ internal.post('/menu/create-post', async (c) => {
   try {
     const subreddit = await reddit.getCurrentSubreddit();
     const post = await reddit.submitPost({
-      title: 'Blast Tanks — Play Now! 💥',
+      title: 'Tankies — Play Now! 💥',
       subredditName: subreddit.name,
-      textFallback: { text: 'Click to play Blast Tanks — a 3D multiplayer tank battle game!' },
+      textFallback: { text: 'Click to play Tankies — a 3D multiplayer tank battle game!' },
     });
     return c.json({ navigateTo: `https://reddit.com/r/${subreddit.name}/comments/${post.id}` });
   } catch (err) {

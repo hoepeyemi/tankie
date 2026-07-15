@@ -36,7 +36,8 @@ export default function ChatUi(props: {className?: string}) {
 
 	useEffect(() => {
 		const listener = (event: KeyboardEvent) => {
-			if (event.key === 'Tab') {
+			// '/' opens chat — Tab is reserved for the in-game scoreboard
+			if (event.key === '/') {
 				event.preventDefault();
 				document.exitPointerLock();
 				inputRef.current?.focus();
@@ -110,7 +111,7 @@ export default function ChatUi(props: {className?: string}) {
 				</AnimatePresence>
 			</div>
 			<form onSubmit={handleSubmit}>
-				<input type='text' ref={inputRef} className='focus-visible:ring-toonks-orange w-full rounded-md border border-gray-800/50 bg-gray-900/50 p-2 text-gray-300 backdrop-blur-sm placeholder:text-gray-300 focus-visible:outline-none focus-visible:ring-1' placeholder='Type a message'/>
+				<input type='text' ref={inputRef} className='focus-visible:ring-toonks-orange w-full rounded-md border border-gray-800/50 bg-gray-900/50 p-2 text-gray-300 backdrop-blur-sm placeholder:text-gray-300 focus-visible:outline-none focus-visible:ring-1' placeholder='Press / to chat'/>
 			</form>
 		</div>
 	);

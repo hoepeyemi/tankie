@@ -3,119 +3,350 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width, height=device-height, user-scalable=0" />
-    <title>Blast Tanks</title>
+    <title>Tankies</title>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        background: linear-gradient(160deg, #0f172a 0%, #1e1b4b 60%, #1a1a2e 100%);
-        color: #fff;
-        font-family: system-ui, -apple-system, sans-serif;
-        height: 100vh;
+
+      html, body {
+        width: 100%; height: 100vh;
         overflow: hidden;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        color: #f0f6fc;
+        user-select: none;
+      }
+
+      /* 3D canvas — full bleed background */
+      #scene {
+        display: block;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Overlay sits on top of canvas */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        pointer-events: none;
+      }
+
+      /* ── Top bar ── */
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px 8px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%);
+        flex-shrink: 0;
+      }
+      .game-name {
+        font-size: 0.88rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.8);
+      }
+      .players-pill {
+        font-size: 0.65rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.75);
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 20px;
+        padding: 3px 9px;
+      }
+      .players-pill b { color: #fff; }
+
+      /* ── Center content ── */
+      .center {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        user-select: none;
+        gap: 12px;
+        padding: 0 16px;
+        pointer-events: auto;
       }
-      .logo { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 0 32px rgba(249,115,22,0.4); }
-      h1 { font-size: 1.5rem; font-weight: 900; color: #f97316; letter-spacing: 3px; text-shadow: 0 0 20px rgba(249,115,22,0.5); }
-      .tagline { font-size: 0.75rem; color: #64748b; letter-spacing: 1px; text-transform: uppercase; }
-      .challenge-box {
-        margin-top: 4px;
-        background: rgba(249,115,22,0.12);
-        border: 1px solid rgba(249,115,22,0.3);
-        border-radius: 10px;
-        padding: 8px 14px;
-        width: 90%;
-        max-width: 280px;
+
+      /* ── Last match card ── */
+      .match-card {
+        width: 100%;
+        max-width: 320px;
+        background: rgba(0,0,0,0.58);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        padding: 12px 16px 14px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .match-label {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: rgba(255,255,255,0.45);
+        margin-bottom: 10px;
+      }
+      .match-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .stat-cell {
         text-align: center;
+        background: rgba(255,255,255,0.06);
+        border-radius: 8px;
+        padding: 8px 4px;
       }
-      .challenge-label { font-size: 10px; color: #fb923c; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
-      .challenge-text { font-size: 12px; color: #e2e8f0; }
-      .challenge-bonus { font-size: 11px; color: #fbbf24; margin-top: 2px; }
-      .lb-box {
-        background: rgba(255,255,255,0.04);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 10px;
-        padding: 8px 14px;
-        width: 90%;
-        max-width: 280px;
+      .stat-val {
+        font-size: 1.4rem;
+        font-weight: 900;
+        line-height: 1;
+        color: #fff;
       }
-      .lb-title { font-size: 10px; color: #64748b; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 5px; text-align: center; }
-      .lb-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 2px 0; }
-      .lb-rank { color: #64748b; width: 18px; font-weight: 700; }
-      .lb-name { color: #e2e8f0; flex: 1; padding: 0 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .lb-xp { color: #f97316; font-weight: 700; font-size: 11px; }
-      .play-btn {
-        margin-top: 6px;
-        padding: 13px 48px;
-        font-size: 1rem;
+      .stat-val.xp-val { color: #f97316; }
+      .stat-val.won-val { color: #4ade80; }
+      .stat-key {
+        font-size: 0.58rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.45);
+        margin-top: 3px;
+      }
+      .match-result-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.72rem;
+      }
+      .result-badge {
         font-weight: 800;
-        letter-spacing: 2px;
-        background: linear-gradient(135deg, #f97316, #ea580c);
+        font-size: 0.72rem;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .result-badge.won  { background: rgba(74,222,128,0.2); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+      .result-badge.lost { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+      .comeback-text { color: rgba(255,255,255,0.45); font-size: 0.68rem; }
+
+      /* First-time / no data card */
+      .hook-card {
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+        background: rgba(0,0,0,0.52);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        padding: 16px;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .hook-title {
+        font-size: 1rem;
+        font-weight: 900;
+        color: #fff;
+        margin-bottom: 6px;
+        letter-spacing: 0.02em;
+      }
+      .hook-sub {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.5);
+        line-height: 1.5;
+      }
+      .hook-pills {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .hook-pill {
+        font-size: 0.65rem;
+        background: rgba(249,115,22,0.15);
+        border: 1px solid rgba(249,115,22,0.3);
+        border-radius: 20px;
+        padding: 3px 10px;
+        color: #fb923c;
+        font-weight: 600;
+      }
+
+      /* ── Play button ── */
+      .play-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 320px;
+      }
+      .ring {
+        position: absolute;
+        inset: -4px;
+        border-radius: 14px;
+        border: 2px solid #f97316;
+        animation: ring-out 2.4s ease-out infinite;
+        pointer-events: none;
+      }
+      .ring:nth-child(2) { animation-delay: 1.2s; }
+      @keyframes ring-out {
+        0%   { opacity: 0.6; transform: scale(1); }
+        80%  { opacity: 0;   transform: scale(1.09); }
+        100% { opacity: 0;   transform: scale(1.09); }
+      }
+      #play-btn {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        padding: 14px;
+        font-size: 1.05rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
         color: #fff;
         border: none;
         border-radius: 10px;
         cursor: pointer;
-        transition: transform 0.1s, box-shadow 0.2s;
-        box-shadow: 0 4px 20px rgba(249,115,22,0.4);
-        text-transform: uppercase;
+        box-shadow: 0 4px 28px rgba(249,115,22,0.55);
+        animation: btn-pulse 3s ease-in-out infinite;
+        transition: transform 0.1s;
       }
-      .play-btn:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(249,115,22,0.3); }
-      .streak-badge { font-size: 11px; color: #fbbf24; }
+      @keyframes btn-pulse {
+        0%, 100% { box-shadow: 0 4px 28px rgba(249,115,22,0.55); }
+        50%       { box-shadow: 0 6px 40px rgba(249,115,22,0.85); }
+      }
+      #play-btn:active { transform: scale(0.97); }
+
+      /* ── Bottom bar — challenge ── */
+      .bottom-bar {
+        flex-shrink: 0;
+        padding: 8px 16px 12px;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+      }
+      #challenge-wrap { display: none; }
+      .ch-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .ch-label {
+        font-size: 0.62rem;
+        color: rgba(255,255,255,0.5);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+      }
+      .ch-desc {
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.8);
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ch-track {
+        width: 80px;
+        flex-shrink: 0;
+        height: 3px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 99px;
+        overflow: hidden;
+      }
+      .ch-fill {
+        height: 100%;
+        background: #f97316;
+        border-radius: 99px;
+        transition: width 0.4s ease;
+      }
+      .ch-fill.done { background: #4ade80; }
+      .ch-xp {
+        font-size: 0.62rem;
+        color: #f97316;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
     </style>
   </head>
   <body>
-    <img class="logo" src="/Blasttankslogo.png" alt="Blast Tanks" />
-    <h1>BLAST TANKS</h1>
-    <p class="tagline">3D Multiplayer Tank Battle</p>
 
-    <div class="challenge-box" id="challenge-box" style="display:none">
-      <div class="challenge-label">🎯 Daily Challenge</div>
-      <div class="challenge-text" id="challenge-text">Loading...</div>
-      <div class="challenge-bonus" id="challenge-bonus"></div>
+    <canvas id="scene"></canvas>
+
+    <div class="overlay">
+
+      <!-- Top bar -->
+      <div class="top-bar">
+        <div class="game-name">Tankies</div>
+        <div class="players-pill" id="players-pill" style="display:none"><b id="player-count">0</b> players ranked</div>
+      </div>
+
+      <!-- Center: last match card + Play button -->
+      <div class="center">
+
+        <!-- Last match (shown if localStorage has data) -->
+        <div class="match-card" id="last-match" style="display:none">
+          <div class="match-label">Last match</div>
+          <div class="match-stats">
+            <div class="stat-cell">
+              <div class="stat-val" id="lm-kills">0</div>
+              <div class="stat-key">Kills</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-val" id="lm-deaths">0</div>
+              <div class="stat-key">Deaths</div>
+            </div>
+            <div class="stat-cell">
+              <div class="stat-val xp-val" id="lm-xp">0</div>
+              <div class="stat-key">XP Earned</div>
+            </div>
+          </div>
+          <div class="match-result-row">
+            <span class="result-badge" id="lm-result"></span>
+            <span class="comeback-text" id="lm-comeback"></span>
+          </div>
+        </div>
+
+        <!-- First-time hook (shown when no last match data) -->
+        <div class="hook-card" id="hook-card">
+          <div class="hook-title">Tank up. Battle hard.</div>
+          <div class="hook-sub">Earn XP with every kill, win matches,<br/>climb the global leaderboard.</div>
+          <div class="hook-pills">
+            <span class="hook-pill">Desktop &amp; Mobile</span>
+            <span class="hook-pill">Daily challenges</span>
+            <span class="hook-pill">XP Wagers</span>
+          </div>
+        </div>
+
+        <!-- Play button -->
+        <div class="play-wrap">
+          <div class="ring"></div>
+          <div class="ring"></div>
+          <button id="play-btn">Play</button>
+        </div>
+
+      </div>
+
+      <!-- Bottom: daily challenge strip -->
+      <div class="bottom-bar">
+        <div id="challenge-wrap">
+          <div class="ch-row">
+            <span class="ch-label">Today</span>
+            <span class="ch-desc" id="ch-desc"></span>
+            <div class="ch-track"><div class="ch-fill" id="ch-fill" style="width:0%"></div></div>
+            <span class="ch-xp" id="ch-xp"></span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="lb-box" id="lb-box" style="display:none">
-      <div class="lb-title">🏆 Top Players</div>
-      <div id="lb-rows"></div>
-    </div>
-
-    <button class="play-btn" id="play-btn">▶ PLAY NOW</button>
-
-    <script type="module" src="splash.ts" defer></script>
-    <script>
-      // Fetch live data for display
-      Promise.all([
-        fetch('/api/challenges/today').then(r => r.json()).catch(() => null),
-        fetch('/api/leaderboard').then(r => r.json()).catch(() => null),
-      ]).then(([challengeData, lbData]) => {
-        if (challengeData?.challenge) {
-          const c = challengeData.challenge;
-          document.getElementById('challenge-text').textContent = c.description;
-          const bonus = document.getElementById('challenge-bonus');
-          if (challengeData.streak > 0) {
-            bonus.textContent = `🔥 ${challengeData.streak}-day streak · +${c.bonusXp} XP bonus`;
-          } else {
-            bonus.textContent = `+${c.bonusXp} XP bonus on completion`;
-          }
-          document.getElementById('challenge-box').style.display = 'block';
-        }
-        if (lbData?.entries?.length > 0) {
-          const top3 = lbData.entries.slice(0, 3);
-          const medals = ['🥇', '🥈', '🥉'];
-          document.getElementById('lb-rows').innerHTML = top3.map((e, i) =>
-            `<div class="lb-row">
-              <span class="lb-rank">${medals[i]}</span>
-              <span class="lb-name">u/${e.username}</span>
-              <span class="lb-xp">${e.xp.toLocaleString()} XP</span>
-            </div>`
-          ).join('');
-          document.getElementById('lb-box').style.display = 'block';
-        }
-      });
-    </script>
+    <script type="module" src="splash.ts"></script>
   </body>
 </html>

@@ -9,7 +9,7 @@ import { type TankType } from '@game/models/TankType';
 
 type Store = {
 	hostGame: (metadata: Metadata & { roomOverride?: string; wagerAmount?: number }) => Promise<{ code: string; network: DevvitNetwork }>;
-	joinGame: (code: string, metadata: Metadata) => Promise<{ code: string; network: DevvitNetwork }>;
+	joinGame: (code: string, metadata: Metadata, wagerAmount?: number) => Promise<{ code: string; network: DevvitNetwork }>;
 	quickPlay: (metadata: Metadata) => Promise<{ code: string; network: OfflineNetwork }>;
 	code?: string;
 	network?: Network<NetworkEvents, Metadata>;
@@ -47,10 +47,10 @@ export const useNetwork = create<Store>((set, get) => {
 			set({ code, wagerAmount: metadata.wagerAmount ?? 0 });
 			return { network, code };
 		},
-		async joinGame(code, metadata: Metadata) {
+		async joinGame(code, metadata: Metadata, wagerAmount?: number) {
 			const network = switchNetwork(new DevvitNetwork());
 			await network.connect({ isHost: false, code, metadata });
-			set({ code });
+			set({ code, wagerAmount: wagerAmount ?? 0 });
 			return { network, code };
 		},
 		async quickPlay(metadata: Metadata) {

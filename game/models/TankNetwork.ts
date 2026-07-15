@@ -33,7 +33,7 @@ export default class TankNetwork extends Tank {
 			};
 		}, true);
 
-		const texture = new FLAT.TextTexture('Toonks', {
+		const texture = new FLAT.TextTexture('Tankies', {
 			background: 'rgba(0, 0, 0, 0.5)',
 			fillStyle: 'white',
 			padding: {

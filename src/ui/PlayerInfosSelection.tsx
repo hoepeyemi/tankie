@@ -8,7 +8,7 @@ import { useRedditUser } from '@/contexts/RedditContext';
 import Button from './Button';
 
 export default function PlayerInfosSelection() {
-	const { tank, setName, setTank, setMenu } = usePlayerSettings();
+	const { tank, name, setName, setTank, setMenu } = usePlayerSettings();
 	const { username } = useRedditUser();
 	const [index, setIndex] = useState(TankTypeList.findIndex(t => t.key === tank));
 	const [direction, setDirection] = useState(1);
@@ -17,9 +17,9 @@ export default function PlayerInfosSelection() {
 		setTank(TankTypeList[index].key);
 	}, [index]);
 
-	// Sync Reddit username as display name
+	// Only sync Reddit username if the player hasn't set a custom name
 	useEffect(() => {
-		setName(username);
+		if (username && name === 'Player') setName(username);
 	}, [username]);
 
 	const nextTank = () => {

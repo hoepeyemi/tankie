@@ -1,4 +1,4 @@
-﻿// Devvit bridge — client-side fetch calls to the Devvit HTTP server.
+// Devvit bridge — client-side fetch calls to the Devvit HTTP server.
 // Falls back to mock data when running outside of a Reddit web view.
 import { purchase, OrderResultStatus } from '@devvit/payments/client';
 import type { LeaderboardEntry, UserInfo } from '@/shared/types';
@@ -79,13 +79,12 @@ export async function reportChallengeProgress(type: DailyChallenge['type'], amou
   } catch { return { bonusAwarded: false, streak: 0 }; }
 }
 
+// Uses dedicated /api/profile endpoint — not limited to top-20 leaderboard
 export async function getMyXp(): Promise<number> {
   if (!isInReddit()) return 999;
   try {
-    const res = await api<{ entries: { username: string; xp: number }[] }>('/api/leaderboard');
-    const info = await getUserInfo();
-    const me = res.entries.find(e => e.username === info.username);
-    return me?.xp ?? 0;
+    const res = await api<{ xp: number }>('/api/profile');
+    return res.xp ?? 0;
   } catch { return 0; }
 }
 
@@ -104,9 +103,10 @@ export async function getWagerInfo(code: string): Promise<{ host: string; challe
   try { return await api(`/api/wager/info/${code}`); } catch { return null; }
 }
 
-export async function settleWager(code: string, winner: string): Promise<void> {
-  if (!isInReddit()) return;
-  await api('/api/wager/settle', { method: 'POST', body: JSON.stringify({ code, winner }) });
+// hostWon: true if the host (current user who calls settle) won the match
+export async function settleWager(code: string, hostWon: boolean): Promise<{ winner: string; prize: number } | null> {
+  if (!isInReddit()) return null;
+  return api('/api/wager/settle', { method: 'POST', body: JSON.stringify({ code, hostWon }) });
 }
 
 export async function cancelWager(code: string): Promise<void> {

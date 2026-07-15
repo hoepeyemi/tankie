@@ -14,7 +14,7 @@ export default function TankModel(props: {type: TankType}) {
 
 	const [meshMap] = useTexture([TankTypes[props.type].url]);
 	meshMap.flipY = false;
-	meshMap.encoding = THREE.sRGBEncoding;
+	meshMap.colorSpace = THREE.SRGBColorSpace;
 	meshMap.repeat.set(1, 1);
 
 	useFrame(() => {

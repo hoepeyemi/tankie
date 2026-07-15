@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Button from '@/ui/Button';
-import { generatePath, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useNetwork } from '@/store/store';
 import { TankTypes } from '@game/models/TankType';
-import TankModel from '@/ui/TankModel';
-import { Canvas } from '@react-three/fiber';
 import { createWager, cancelWager } from '@/lib/devvit-bridge';
 
 export default function Connected() {
@@ -22,62 +20,96 @@ export default function Connected() {
 		}).catch(() => setWagerError('Failed to create wager'));
 	}, []);
 
+	const [copied, setCopied] = useState(false);
 	const handleCopy = () => {
 		if (code) {
-			const url = window.location.origin + generatePath('/join/:code', { code });
-			void navigator.clipboard.writeText(url);
+			void navigator.clipboard.writeText(code).then(() => {
+				setCopied(true);
+				setTimeout(() => setCopied(false), 2000);
+			});
 		}
 	};
 
-	const handleCancel = () => {
-		if (code) cancelWager(code).catch(() => {});
+	const handleBack = () => {
+		if (wagerAmount > 0 && code) cancelWager(code).catch(() => {});
 		network?.disconnect();
+		navigate(-1 as any);
 	};
 
 	return (
-		<div className='space-y-4 p-6 sm:p-8 md:space-y-4'>
-			<h2 className='m-0 flex justify-center'>
+		<div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '16px' }}>
+
+			{/* Back button */}
+			<button
+				onClick={handleBack}
+				style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', fontSize: '0.8rem', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+			>
+				← Back
+			</button>
+
+			{/* Room code — tap to copy */}
+			<div style={{ textAlign: 'center' }}>
+				<div style={{ fontSize: '0.62rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+					Room Code — tap to copy &amp; share
+				</div>
 				<button
 					onClick={handleCopy}
-					className='group flex items-center text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl'
+					style={{
+						display: 'inline-flex', alignItems: 'center', gap: 8,
+						background: copied ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.06)',
+						border: copied ? '1px solid rgba(74,222,128,0.35)' : '1px solid rgba(255,255,255,0.15)',
+						borderRadius: 10, padding: '8px 18px', cursor: 'pointer',
+						fontSize: '1.8rem', fontWeight: 900, letterSpacing: '0.18em',
+						color: copied ? '#4ade80' : '#f97316',
+						fontFamily: 'monospace', transition: 'all 0.2s',
+					}}
 				>
 					{code}
-					<span className='mx-1 text-gray-500 transition-transform duration-100 group-hover:text-gray-700 group-active:scale-90 dark:text-gray-400 dark:group-hover:text-gray-300'>
-						<svg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 24 24'><path fill='currentColor' d='M14 22H4a1.934 1.934 0 0 1-2-2V10a1.934 1.934 0 0 1 2-2h4V4a1.934 1.934 0 0 1 2-2h10a1.934 1.934 0 0 1 2 2v10a1.935 1.935 0 0 1-2 2h-4v4a1.935 1.935 0 0 1-2 2ZM4 10v10h10v-4h-4a1.935 1.935 0 0 1-2-2v-4H4Zm6-6v10h10V4H10Z' /></svg>
-					</span>
+					{copied
+						? <span style={{ fontSize: '0.75rem', fontFamily: 'system-ui', letterSpacing: 0, color: '#4ade80' }}>Copied!</span>
+						: <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' style={{ color: '#64748b', flexShrink: 0 }}>
+							<path fill='currentColor' d='M14 22H4a1.934 1.934 0 0 1-2-2V10a1.934 1.934 0 0 1 2-2h4V4a1.934 1.934 0 0 1 2-2h10a1.934 1.934 0 0 1 2 2v10a1.935 1.935 0 0 1-2 2h-4v4a1.935 1.935 0 0 1-2 2ZM4 10v10h10v-4h-4a1.935 1.935 0 0 1-2-2v-4H4Zm6-6v10h10V4H10Z'/>
+						</svg>
+					}
 				</button>
-			</h2>
+				<p style={{ fontSize: '0.6rem', color: '#475569', marginTop: 6 }}>Share this code with your opponent in the comments or a DM</p>
+			</div>
 
+			{/* Wager banner */}
 			{wagerAmount > 0 && (
-				<div className='rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-2 text-center'>
-					<span className='text-sm font-bold text-yellow-400'>⚔️ Wager: {wagerAmount.toLocaleString()} XP</span>
-					<span className='ml-2 text-xs text-gray-400'>— winner takes {(wagerAmount * 2).toLocaleString()} XP</span>
-					{wagerError && <p className='mt-1 text-xs text-red-400'>{wagerError}</p>}
+				<div style={{
+					background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)',
+					borderRadius: 10, padding: '10px 14px', textAlign: 'center',
+				}}>
+					<span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fbbf24' }}>⚔️ Wager: {wagerAmount.toLocaleString()} XP</span>
+					<span style={{ marginLeft: 8, fontSize: '0.72rem', color: '#64748b' }}>— winner takes {(wagerAmount * 2).toLocaleString()} XP</span>
+					{wagerError && <p style={{ marginTop: 4, fontSize: '0.72rem', color: '#f87171' }}>{wagerError}</p>}
 				</div>
 			)}
 
-			<p className='text-md flex items-center justify-center space-x-1 font-bold text-gray-900 dark:text-white'>
-				<span className='flex items-center text-xl'>
-					<svg className='h-5 w-5' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='currentColor' d='M130.613 43.002v66.926c-22.925 19.7-38.03 48.177-40.533 80.252h234.51c-2.666-34.175-19.637-64.265-45.133-84.006H149.303V43.002h-18.69zM472.62 58.738l-41.53 11.127l16.504 61.588l41.525-11.127l-16.5-61.588zm-54.042 36.627l-98.787 26.47a136.585 136.585 0 0 1 13.647 25.15l92.342-24.745l-7.202-26.875zM121.53 206.342l-78.364 37.045l.002 50.3l18.207-7.556H442.11l19.316 6.413c0-51.397-119.076-83.53-183.166-86.2H121.53zm-38.17 97.88v.038c-35.936.645-65.065 30.15-65.065 66.232c0 36.484 29.777 66.26 66.262 66.26c1.286 0 2.563-.046 3.832-.12h106.473c1.27.074 2.545.12 3.832.12s2.563-.046 3.832-.12h107.34c1.27.074 2.545.12 3.832.12c1.286 0 2.562-.046 3.83-.12H423.7c1.268.074 2.544.12 3.83.12c36.486 0 66.263-29.776 66.263-66.26c0-36.485-29.777-66.262-66.262-66.262c-.276 0-.55.02-.827.022v-.03H83.36zm47.2 18.686h22.13a66.882 66.882 0 0 0-11.063 14.014a66.74 66.74 0 0 0-11.066-14.014zm114.14 0h22.995a66.814 66.814 0 0 0-11.498 14.766a66.814 66.814 0 0 0-11.498-14.766zm115.003 0h21.824a66.929 66.929 0 0 0-10.912 13.748a66.861 66.861 0 0 0-10.912-13.748zm-275.146.012a47.43 47.43 0 0 1 47.572 47.572a47.41 47.41 0 0 1-44.333 47.45H83.36v.09a47.414 47.414 0 0 1-46.378-47.54a47.434 47.434 0 0 1 47.575-47.572zm114.138 0a47.43 47.43 0 0 1 47.573 47.572a47.409 47.409 0 0 1-44.332 47.45h-6.48a47.41 47.41 0 0 1-44.335-47.45a47.434 47.434 0 0 1 47.575-47.572zm115.004 0a47.428 47.428 0 0 1 47.57 47.533v.078a47.41 47.41 0 0 1-44.33 47.413h-6.48a47.411 47.411 0 0 1-44.335-47.45a47.434 47.434 0 0 1 47.574-47.573zm113.83 0a47.431 47.431 0 0 1 47.575 47.572a47.432 47.432 0 0 1-47.574 47.572c-.277 0-.55-.016-.827-.02v-.1h-2.412a47.41 47.41 0 0 1-44.33-47.413v-.078a47.43 47.43 0 0 1 47.57-47.532zm-171.333 80.39a66.812 66.812 0 0 0 11.362 14.633h-22.724a66.737 66.737 0 0 0 11.36-14.632zm-114.572.75a66.858 66.858 0 0 0 10.93 13.883h-21.858a66.802 66.802 0 0 0 10.928-13.882zm228.99.266a66.819 66.819 0 0 0 10.776 13.617h-21.55a66.787 66.787 0 0 0 10.775-13.617z' /></svg>
-					{peers.length}
-				</span>
-				<span className='text-gray-500 dark:text-gray-400'>/</span>
-				<span className='text-xl'>{maxNbPlayers}</span>
-			</p>
+			{/* Player count */}
+			<div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#64748b' }}>
+				{peers.length} / {maxNbPlayers} players in lobby
+			</div>
 
-			<div className='grid grid-cols-2 gap-3 sm:grid-cols-3'>
+			{/* Peer cards */}
+			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: 10 }}>
 				{peers.map(peer => {
 					const tankInfo = TankTypes[peer.metadata.tank] ?? TankTypes.heig;
 					return (
-						<div className='flex flex-col items-center space-y-2 rounded-lg bg-gray-100 py-4 dark:bg-gray-700' key={peer.uuid}>
-							<h2 className='w-full truncate px-4 text-center text-lg font-bold text-gray-900 dark:text-white'>
+						<div key={peer.uuid} style={{
+							display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+							background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+							borderRadius: 10, padding: '12px 8px',
+						}}>
+							<img
+								src={tankInfo.avatar}
+								alt={tankInfo.name}
+								style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 8 }}
+							/>
+							<span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#e2e8f0', textAlign: 'center', wordBreak: 'break-word', maxWidth: '100%' }}>
 								{peer.metadata.name}
-							</h2>
-							<div className='w-full'>
-								<Canvas camera={{ fov: 35, zoom: 1.5 }}>
-									<TankModel type={peer.metadata.tank} />
-								</Canvas>
-							</div>
+							</span>
 						</div>
 					);
 				})}
@@ -86,9 +118,9 @@ export default function Connected() {
 			<Button onClick={() => navigate('/game')} fullWidth size='large'>Play</Button>
 
 			{wagerAmount > 0 && (
-				<button onClick={handleCancel} className='w-full text-center text-sm text-red-400 hover:text-red-300'>
-					Cancel &amp; Refund Wager
-				</button>
+				<p style={{ textAlign: 'center', fontSize: '0.68rem', color: '#64748b' }}>
+					← Back cancels the wager and refunds your XP
+				</p>
 			)}
 		</div>
 	);

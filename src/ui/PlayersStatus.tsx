@@ -87,12 +87,7 @@ function PlayerStatus({tank, isPlayer, children}: {tank: Tank; isPlayer: boolean
 	}, [tank]);
 
 	return (
-		<div
-			className={clsx('scale-100 transform-gpu', 'flex text-xl text-white')}
-			onClick={() => {
-				tank.hit(5);
-			}}
-		>
+		<div className={clsx('scale-100 transform-gpu', 'flex text-xl text-white')}>
 			<PlayerAvatar
 				src={tankData.type.avatar}
 				isDead={tankData.health <= 0}

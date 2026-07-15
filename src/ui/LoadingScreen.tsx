@@ -52,7 +52,7 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
             {/* Logo */}
             <motion.img
                 src='/Blasttankslogo.png'
-                alt='Blast Tanks'
+                alt='Tankies'
                 initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -97,19 +97,34 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
                 {getLabel()}
             </p>
 
-            {/* Instructional hints */}
+            {/* Platform hints */}
             <div style={{
-                marginTop: 24,
+                marginTop: 28,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 6,
+                gap: 10,
             }}>
-                <p style={{ color: '#cbd5e1', fontSize: 14, fontWeight: 500, margin: 0 }}>
-                    Click to Start
-                </p>
-                <p style={{ color: '#64748b', fontSize: 12, fontWeight: 400, margin: 0 }}>
-                    Press Esc to exit
+                <div style={{ display: 'flex', gap: 16 }}>
+                    {[
+                        { icon: '🖥️', label: 'Desktop', sub: 'WASD + Mouse' },
+                        { icon: '📱', label: 'Mobile', sub: 'Touch joystick' },
+                    ].map(p => (
+                        <div key={p.label} style={{
+                            textAlign: 'center',
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: 10,
+                            padding: '10px 18px',
+                        }}>
+                            <div style={{ fontSize: 22, marginBottom: 4 }}>{p.icon}</div>
+                            <div style={{ color: '#e2e8f0', fontSize: 12, fontWeight: 600 }}>{p.label}</div>
+                            <div style={{ color: '#64748b', fontSize: 10, marginTop: 2 }}>{p.sub}</div>
+                        </div>
+                    ))}
+                </div>
+                <p style={{ color: '#475569', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: 4 }}>
+                    Best enjoyed with headphones
                 </p>
             </div>
 
@@ -122,7 +137,7 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
             }}>
-                Blast Tanks
+                Tankies
             </p>
         </motion.div>
     );
