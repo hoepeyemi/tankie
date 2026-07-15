@@ -34,23 +34,30 @@
     },
     "products": [
       {
-        "sku": "skin_heig",
-        "displayName": "HEIG Tank Skin",
-        "description": "Premium HEIG tank skin for Blast Tanks",
+        "sku": "skin_military",
+        "displayName": "Soldier Boy Tank",
+        "description": "Unlock the Soldier Boy tank skin for Blast Tanks",
+        "price": 5,
+        "accountingType": "INSTANT"
+      },
+      {
+        "sku": "skin_studystorm",
+        "displayName": "StudyStorm Tank",
+        "description": "Unlock the StudyStorm tank skin for Blast Tanks",
         "price": 25,
         "accountingType": "INSTANT"
       },
       {
-        "sku": "skin_neon",
-        "displayName": "Neon Tank Skin",
-        "description": "Premium Neon tank skin for Blast Tanks",
+        "sku": "skin_weeb",
+        "displayName": "Weeb Kawaii Tank",
+        "description": "Unlock the Weeb Kawaii tank skin for Blast Tanks",
         "price": 50,
         "accountingType": "INSTANT"
       },
       {
-        "sku": "skin_geometric",
-        "displayName": "Geometric Tank Skin",
-        "description": "Premium Geometric tank skin for Blast Tanks",
+        "sku": "skin_thomas",
+        "displayName": "Thomas The Tank",
+        "description": "Unlock the Thomas The Tank skin for Blast Tanks",
         "price": 100,
         "accountingType": "INSTANT"
       }

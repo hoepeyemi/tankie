@@ -10,22 +10,11 @@ export default function Register() {
 	const audio = useAudio();
 	const [showSettings, setShowSettings] = useState(false);
 	const tabs = [
-		{
-			label: 'Quick Play',
-			url: '/quickplay',
-		},
-		{
-			label: 'Multiplayer',
-			url: '/',
-		},
-		{
-			label: 'Skins',
-			url: '/skins',
-		},
-		{
-			label: 'Leaderboard',
-			url: '/leaderboard',
-		},
+		{ label: 'Quick Play', url: '/quickplay' },
+		{ label: 'Multiplayer', url: '/' },
+		{ label: 'Wager', url: '/wager' },
+		{ label: 'Skins', url: '/skins' },
+		{ label: 'Leaderboard', url: '/leaderboard' },
 	];
 
 	const location = useLocation();

@@ -4,13 +4,13 @@ import Button from '@/ui/Button';
 import clsx from 'clsx';
 import type Game from '@game/scenes/Game';
 import { motion } from 'framer-motion';
-import { submitScore } from '@/lib/devvit-bridge';
+import { submitScore, settleWager } from '@/lib/devvit-bridge';
 import { useNavigate } from 'react-router-dom';
 
 export default function GameOver({ game }: { game: Game }) {
     const navigate = useNavigate();
     const { state } = useMatchStore();
-    const { network } = useNetwork();
+    const { network, code } = useNetwork();
     const hasSubmitted = useRef(false);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
@@ -31,12 +31,17 @@ export default function GameOver({ game }: { game: Game }) {
         hasSubmitted.current = true;
         setSubmitStatus('submitting');
 
+        const winner = stats[0];
         submitScore(localStats.kills, localStats.deaths, localStats.xp)
             .then(() => setSubmitStatus('success'))
             .catch(err => {
                 console.error('[DevvitBridge] Failed to submit score:', err);
                 setSubmitStatus('error');
             });
+        // Settle wager if this was a wager match (host settles on behalf of both)
+        if (code && code !== 'OFFLINE' && network?.isHost && winner?.pseudo) {
+            settleWager(code, winner.pseudo).catch(() => {});
+        }
     }, [state, localStats]);
 
     useEffect(() => {

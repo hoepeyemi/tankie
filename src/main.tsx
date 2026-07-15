@@ -8,6 +8,7 @@ import MultiplayerTab from '@/routes/root/tab/MultiplayerTab';
 import QuickPlayTab from '@/routes/root/tab/QuickPlayTab';
 import LeaderboardTab from '@/routes/root/tab/LeaderboardTab';
 import SkinsTab from '@/routes/root/tab/SkinsTab';
+import WagerTab from '@/routes/root/tab/WagerTab';
 import { RedditProvider } from '@/contexts/RedditContext';
 
 class ErrorBoundary extends React.Component<
@@ -45,6 +46,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 							<Route index element={<MultiplayerTab />} />
 							<Route path='join/:code?' element={<MultiplayerTab />} />
 							<Route path='quickplay' element={<QuickPlayTab />} />
+							<Route path='wager' element={<WagerTab />} />
 							<Route path='skins' element={<SkinsTab />} />
 							<Route path='leaderboard' element={<LeaderboardTab />} />
 						</Route>

@@ -24,7 +24,7 @@ export const TankTypes = {
 		avatar: '/images/avatar/studystorm.cropped.webp',
 		honk: '/sounds/chad.ogg',
         premium: true,
-        price: 10,
+        price: 25,
 	},
 	weeb: {
 		name: 'Weeb Kawaii',
@@ -33,7 +33,7 @@ export const TankTypes = {
 		avatar: '/images/avatar/weeb.cropped.webp',
 		honk: '/sounds/uwu.ogg',
         premium: true,
-        price: 25,
+        price: 50,
 	},
 	thomas: {
 		name: 'Thomas The Tank',
@@ -42,7 +42,7 @@ export const TankTypes = {
 		avatar: '/images/avatar/thomas.cropped.webp',
 		honk: '/sounds/thomas.ogg',
         premium: true,
-        price: 50,
+        price: 100,
 	},
 } as const satisfies Record<string, {
 	name: string;

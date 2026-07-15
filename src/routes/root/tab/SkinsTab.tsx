@@ -8,12 +8,6 @@ import Button from '@/ui/Button';
 import { getOwnedSkins, purchaseSkin } from '@/lib/devvit-bridge';
 import { useRedditUser } from '@/contexts/RedditContext';
 
-// Skin SKU → Reddit Gold cost (Reddit Gold ≈ 100 coins)
-const SKIN_PRICES: Record<string, number> = {
-	heig: 25,
-	neon: 50,
-	geometric: 75,
-};
 
 export default function SkinsTab() {
 	const { name, tank, setTank } = usePlayerSettings();
@@ -137,7 +131,7 @@ export default function SkinsTab() {
 			) : (
 				<Button fullWidth size='large' onClick={handleBuySkin}>
 					{currentTank.value.premium
-						? `Unlock for ${SKIN_PRICES[currentTank.key] ?? 25} Reddit Gold`
+						? `Unlock for ${currentTank.value.price ?? 25} Reddit Gold`
 						: 'Select Tank'}
 				</Button>
 			)}
