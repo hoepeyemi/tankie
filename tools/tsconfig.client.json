@@ -5,9 +5,10 @@
     "tsBuildInfoFile": "../dist/types/client/tsconfig.tsbuildinfo",
     "customConditions": ["browser"],
     "jsx": "react-jsx",
-    "rootDir": "../src",
+    "rootDir": "..",
     "paths": {
-      "@/*": ["../src/*"]
+      "@/*": ["../src/*"],
+      "@game/*": ["../game/*"]
     }
   },
   "include": [
@@ -18,7 +19,8 @@
     "../src/ui/**/*",
     "../src/store/**/*",
     "../src/lib/**/*",
-    "../src/contexts/**/*"
+    "../src/contexts/**/*",
+    "../game/**/*"
   ],
   "exclude": ["../src/server/**/*"],
   "references": [

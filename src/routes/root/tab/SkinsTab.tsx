@@ -80,31 +80,19 @@ export default function SkinsTab() {
 				Garage
 			</h2>
 			<div className='bg-gradient-radial relative overflow-hidden rounded border border-gray-100/90 from-slate-900/80 to-gray-900/30 dark:border-gray-700/90'>
-				<AnimatePresence mode={'popLayout'}>
-					<motion.img
-						key={currentTank.key}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 0.5 }}
-						exit={{ opacity: 0 }}
-						transition={{ duration: 0.25 }}
-						className='absolute inset-0 -z-10 h-full w-full object-cover object-[center_20%] opacity-50 blur-[1px]'
-						src={currentTank.value.backdrop}
-					/>
-				</AnimatePresence>
+				<motion.img
+					key={currentTank.key}
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 0.5 }}
+					transition={{ duration: 0.25 }}
+					className='absolute inset-0 -z-10 h-full w-full object-cover object-[center_20%] opacity-50 blur-[1px]'
+					src={currentTank.value.backdrop}
+				/>
 
-				<AnimatePresence mode={'wait'}>
-					<motion.div
-						key={currentTank.key}
-						initial={{ opacity: 0, x: -200 * direction }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: 200 * direction }}
-						transition={{ duration: 0.25 }}
-					>
-						<Canvas camera={{ fov: 35, zoom: 1.5 }}>
-							<TankModel type={currentTank.key} />
-						</Canvas>
-					</motion.div>
-				</AnimatePresence>
+				{/* Single persistent Canvas — avoids WebGL context exhaustion */}
+				<Canvas camera={{ fov: 35, zoom: 1.5 }}>
+					<TankModel type={currentTank.key} />
+				</Canvas>
 
 				{!isOwned && !loading && currentTank.value.premium && (
 					<div className='absolute inset-0 flex items-center justify-center pointer-events-none'>

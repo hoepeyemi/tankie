@@ -24,7 +24,7 @@ export default function GameRenderer() {
 
 	useEffect(() => {
 		audio.fadeOut();
-        
+
         // Reset match store to ensure it doesn't bleed from previous matches
         useMatchStore.getState().setMatchState(300000, 'PLAYING');
 
@@ -32,6 +32,14 @@ export default function GameRenderer() {
 			navigate('/');
             return;
 		}
+
+		// Handle WebGL context loss — prevent default so Three.js can attempt restore
+		const canvas = canvasRef.current;
+		const onContextLost = (e: Event) => {
+			e.preventDefault();
+			console.warn('[GameRenderer] WebGL context lost — waiting for restore');
+		};
+		canvas?.addEventListener('webglcontextlost', onContextLost);
 
 		const { start, stop } = initGame();
 		// Timeout: force-complete loading after 30s so users aren't stuck forever
@@ -81,6 +89,7 @@ export default function GameRenderer() {
 		return () => {
 			clearTimeout(loadTimeout);
 			stop();
+			canvas?.removeEventListener('webglcontextlost', onContextLost);
 		};
 	}, []);
 

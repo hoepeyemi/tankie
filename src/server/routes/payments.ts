@@ -10,7 +10,11 @@ paymentsRouter.post('/fulfill', async (c) => {
     if (!username) return c.json({ error: 'Not logged in' }, 401);
 
     const skinKey = sku.replace('skin_', '');
-    await redis.sAdd(`skins:${username}`, skinKey);
+    const raw = await redis.get(`skins:${username}`);
+    const existing = raw ? raw.split(',').filter(Boolean) : [];
+    if (!existing.includes(skinKey)) {
+      await redis.set(`skins:${username}`, [...existing, skinKey].join(','));
+    }
     await payments.acknowledgeOrderDelivery(orderId);
 
     return c.json({ ok: true });

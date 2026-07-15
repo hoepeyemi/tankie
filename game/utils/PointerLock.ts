@@ -5,7 +5,7 @@ export class PointerLock extends Emittery<{
 }> {
 	constructor(private readonly element: HTMLElement) {
 		super();
-		document.addEventListener('pointerlockchange', event => {
+		document.addEventListener('pointerlockchange', () => {
 			void this.emit('pointerlockchange', this.isLocked());
 		});
 		element.addEventListener('pointerdown', () => {
@@ -19,13 +19,21 @@ export class PointerLock extends Emittery<{
 
 	public lock() {
 		if (!this.isLocked()) {
-			this.element.requestPointerLock();
+			try {
+				void this.element.requestPointerLock();
+			} catch {
+				// Silently ignore — sandboxed iframes (e.g. Devvit) block pointer lock
+			}
 		}
 	}
 
 	public unlock() {
 		if (this.isLocked()) {
-			document.exitPointerLock();
+			try {
+				document.exitPointerLock();
+			} catch {
+				// ignore
+			}
 		}
 	}
 }

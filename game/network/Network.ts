@@ -1,4 +1,3 @@
-import {type DataConnection} from 'peerjs';
 import Emittery from 'emittery';
 import {type PeerData} from './NetworkEvents';
 
@@ -82,12 +81,12 @@ export abstract class Network<T = Record<string, any>, Metadata = never> extends
 
 	abstract getPeerData(): PeerData | undefined;
 
-	protected handleMessage(connection: DataConnection, data: Message) {
+	protected handleMessage(connection: unknown, data: Message) {
 		const {channel, ...message} = data;
 		void this.channelEmitter.emit(channel as keyof T, message as any);
 	}
 
-	protected abstract addConnection(connection: DataConnection): void;
+	protected abstract addConnection(connection: unknown): void;
 
-	protected abstract removeConnection(connection: DataConnection): void;
+	protected abstract removeConnection(connection: unknown): void;
 }

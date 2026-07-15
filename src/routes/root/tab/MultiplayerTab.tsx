@@ -4,7 +4,6 @@ import { useNetwork, usePlayerSettings } from '@/store/store';
 import Button from '@/ui/Button';
 import { NetworkStatus } from '@game/network/Network';
 import CodeInput from '@/ui/CodeInput';
-import { isInReddit } from '@/lib/devvit-bridge';
 
 export default function MultiplayerTab() {
 	const { status, hostGame, joinGame } = useNetwork();
@@ -21,18 +20,6 @@ export default function MultiplayerTab() {
 	};
 
 	if (mode === 'choose') {
-		if (isInReddit()) {
-			return (
-				<div className='space-y-4'>
-					<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>
-						Multiplayer
-					</h2>
-					<p className='text-center text-sm text-gray-500 dark:text-gray-400'>
-						Live multiplayer is coming soon to Reddit. Try Quick Play to battle bots now!
-					</p>
-				</div>
-			);
-		}
 		return (
 			<div className='space-y-4'>
 				<h2 className='text-center text-xl font-bold text-gray-900 dark:text-white'>

@@ -1,16 +1,15 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Network, NetworkStatus } from '@game/network/Network';
-import { ClientNetwork } from '@game/network/ClientNetwork';
-import { ServerNetwork } from '@game/network/ServerNetwork';
+import { DevvitNetwork } from '@game/network/DevvitNetwork';
 import { OfflineNetwork } from '@game/network/OfflineNetwork';
 import { type Metadata, type NetworkEvents, type PeerData } from '@game/network/NetworkEvents';
 import { Howl } from 'howler';
 import { type TankType } from '@game/models/TankType';
 
 type Store = {
-	hostGame: (metadata: Metadata & { roomOverride?: string }) => Promise<{ code: string; network: ServerNetwork }>;
-	joinGame: (code: string, metadata: Metadata) => Promise<{ code: string; network: ClientNetwork }>;
+	hostGame: (metadata: Metadata & { roomOverride?: string }) => Promise<{ code: string; network: DevvitNetwork }>;
+	joinGame: (code: string, metadata: Metadata) => Promise<{ code: string; network: DevvitNetwork }>;
 	quickPlay: (metadata: Metadata) => Promise<{ code: string; network: OfflineNetwork }>;
 	code?: string;
 	network?: Network<NetworkEvents, Metadata>;
@@ -38,26 +37,17 @@ export const useNetwork = create<Store>((set, get) => {
 		status: NetworkStatus.Disconnected,
 		peers: [],
 		async hostGame(metadata: Metadata & { roomOverride?: string }) {
-			const { full, code } = metadata.roomOverride 
-                ? Network.createRoomId({ prefix: 'TOONKS', value: metadata.roomOverride })
-                : Network.createRoomId({ prefix: 'TOONKS', length: 6 });
-			const network = switchNetwork(new ServerNetwork(full));
-
-			network.setHandleConnection(() => network.getConnections().length + 1 < get().maxNbPlayers);
-
-			await network.connect({
-				metadata,
-			});
+			const { code } = metadata.roomOverride
+				? Network.createRoomId({ prefix: 'TOONKS', value: metadata.roomOverride })
+				: Network.createRoomId({ prefix: 'TOONKS', length: 6 });
+			const network = switchNetwork(new DevvitNetwork());
+			await network.connect({ isHost: true, code, metadata });
 			set({ code });
 			return { network, code };
 		},
 		async joinGame(code, metadata: Metadata) {
-			const network = switchNetwork(new ClientNetwork());
-			await network.connect({
-				id: Network.createRoomId({ prefix: 'TOONKS', value: code }).full,
-				metadata,
-			});
-
+			const network = switchNetwork(new DevvitNetwork());
+			await network.connect({ isHost: false, code, metadata });
 			set({ code });
 			return { network, code };
 		},

@@ -98,7 +98,7 @@ export default class Tank extends Entity {
 		this.group = new ExtendedGroup();
 
 		this.shootSound = game.audioManager.createAudio('/sounds/shoot.ogg');
-		this.honkSound = game.audioManager.createAudio('/sounds/honk.ogg');
+		this.honkSound = game.audioManager.createAudio('/sounds/horn.ogg');
 		this.engineSound = game.audioManager.createAudio();
 
 		this.chassis = new ExtendedObject3D().add(this.model.get('TankFree_Body')!);

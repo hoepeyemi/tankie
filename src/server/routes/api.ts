@@ -51,6 +51,7 @@ api.post('/score', async (c) => {
 api.get('/skins', async (c) => {
   const username = context.username;
   if (!username) return c.json({ skins: [] });
-  const skins = await redis.sMembers(`skins:${username}`);
+  const raw = await redis.get(`skins:${username}`);
+  const skins = raw ? raw.split(',').filter(Boolean) : [];
   return c.json({ skins });
 });

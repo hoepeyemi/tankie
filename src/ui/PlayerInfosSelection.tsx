@@ -47,30 +47,17 @@ export default function PlayerInfosSelection() {
 				</div>
 				<div>
 					<div className='bg-gradient-radial relative overflow-hidden rounded border border-gray-100/90 from-slate-900/80 to-gray-900/30 dark:border-gray-700/90'>
-						<AnimatePresence mode={'popLayout'}>
-							<motion.img
-								key={TankTypeList[index].key}
-								initial={{ opacity: 0 }}
-								animate={{ opacity: 0.5 }}
-								exit={{ opacity: 0 }}
-								transition={{ duration: 0.25 }}
-								className='absolute inset-0 -z-10 h-full w-full object-cover object-[center_20%] opacity-50 blur-[1px]'
-								src={TankTypeList[index].value.backdrop}
-							/>
-						</AnimatePresence>
-						<AnimatePresence mode={'wait'}>
-							<motion.div
-								key={TankTypeList[index].key}
-								initial={{ opacity: 0, x: -200 * direction }}
-								animate={{ opacity: 1, x: 0 }}
-								exit={{ opacity: 0, x: 200 * direction }}
-								transition={{ duration: 0.25 }}
-							>
-								<Canvas camera={{ fov: 35, zoom: 1.5 }}>
-									<TankModel type={TankTypeList[index].key} />
-								</Canvas>
-							</motion.div>
-						</AnimatePresence>
+						<motion.img
+							key={TankTypeList[index].key}
+							initial={{ opacity: 0 }}
+							animate={{ opacity: 0.5 }}
+							transition={{ duration: 0.25 }}
+							className='absolute inset-0 -z-10 h-full w-full object-cover object-[center_20%] opacity-50 blur-[1px]'
+							src={TankTypeList[index].value.backdrop}
+						/>
+						<Canvas camera={{ fov: 35, zoom: 1.5 }}>
+							<TankModel type={TankTypeList[index].key} />
+						</Canvas>
 						<div className='flex flex-row items-center justify-between border border-gray-300 bg-white/70 leading-tight text-gray-500 shadow dark:border-gray-700 dark:bg-gray-800/70 dark:text-gray-400'>
 							<span className='block cursor-pointer px-3 py-2 leading-tight text-gray-500 hover:bg-gray-100/90 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700/90 dark:hover:text-white' onClick={prevTank}>
 								<svg aria-hidden='true' className='h-5 w-5' fill='currentColor' viewBox='0 0 20 20'>

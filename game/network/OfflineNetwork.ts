@@ -57,11 +57,6 @@ export class OfflineNetwork extends Network<NetworkEvents, Metadata> {
         }
     }
 
-    protected addConnection(_connection: import('peerjs').DataConnection): void {
-        // Not needed
-    }
-
-    protected removeConnection(_connection: import('peerjs').DataConnection): void {
-        // Not needed
-    }
+    protected addConnection(_connection: unknown): void {}
+    protected removeConnection(_connection: unknown): void {}
 }
